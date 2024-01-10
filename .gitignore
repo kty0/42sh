@@ -1,0 +1,11 @@
+*
+!*.c
+!*.h
+!*.sh
+!*.am
+!*.md
+!*.ac
+!.gitlab-ci.yml
+!.clang-format
+!.gitignore
+!*/
