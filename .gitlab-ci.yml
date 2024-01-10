@@ -1,0 +1,27 @@
+stages:
+  - format
+  - build
+  - test
+
+clang-format:
+  stage: format
+  before_script: 
+    - |
+      apk update
+      apk add git clang clang-extra-tools
+      git config --global --add safe.directory `pwd`
+  script:
+    - for f in `git ls-files | grep -E "\.(c|h)$"`; do name=$(echo $f | sed -E "s/\//_/g"); clang-format $f > $name; diff $f $name; done > .ci-temp || true
+    - cat .ci-temp
+    - exit $(wc -c < .ci-temp)
+
+build-job:
+  stage: build
+  before_script:
+    - |
+      apk update
+      apk add build-base make tree automake autoconf
+  script:
+    - autoreconf --install
+    - ./configure
+    - make
