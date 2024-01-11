@@ -31,6 +31,7 @@ void lexer_skip_whitespace(struct lexer *lexer)
         lexer->pos++;
     }
 }
+
 /**
  * Create a string that handles the quote and double quote case
  */
@@ -55,8 +56,7 @@ char *str_quote(struct lexer *lexer)
     }
     if (lexer->input[lexer->pos] == '\0' && check_end == 0)
     {
-        char *str = "Error";
-        return str;
+        return NULL;
     }
     char *str = malloc(len + 1);
     strncpy(str, begin + 1, len);
@@ -76,24 +76,76 @@ char *get_string(struct lexer *lexer)
     {
         return NULL;
     }
-    if (lexer->input[lexer->pos] == '"' || lexer->input[lexer->pos] == '\'')
-    {
-        return str_quote(lexer);
-    }
+    char *str = NULL;
+    char *hoppy = NULL;
+    int sub = 0;
+    int end = 0;
+    int len_tot = 0;
+    int deb = 1;
     while (lexer->input[lexer->pos] != ';' && lexer->input[lexer->pos] != '\0'
-           && lexer->input[lexer->pos] != ' ')
+           && lexer->input[lexer->pos] != ' '
+           && lexer->input[lexer->pos] != '\n')
     {
-        lexer->pos++;
-        len++;
+        deb = 0;
+        if (sub)
+        {
+            size_t len_sub = strlen(hoppy);
+            str = realloc(str, len_tot + len_sub);
+            strncpy(str + len_tot, hoppy, len_sub);
+            len_tot += len_sub;
+            len = 0;
+            sub = 0;
+        }
+        if (lexer->input[lexer->pos] == '"' || lexer->input[lexer->pos] == '\'')
+        {
+            str = realloc(str, len_tot + len);
+            strncpy(str + len_tot, lexer->input + lexer->pos - len, len);
+            len_tot += len;
+            hoppy = str_quote(lexer);
+            if (!hoppy)
+            {
+                free(str);
+                free(hoppy);
+                char *s = "Error";
+                return s;
+            }
+            sub = 1;
+            end = 0;
+        }
+        else
+        {
+            lexer->pos++;
+            len++;
+            end = 1;
+        }
     }
-    if (lexer->input[lexer->pos] == ';' && len == 0)
+    if (lexer->input[lexer->pos] == ';' && deb)
     {
         len++;
         lexer->pos++;
+        end = 1;
     }
-    char *str = malloc(len + 1);
-    strncpy(str, begin, len);
-    str[len] = '\0';
+    if (lexer->input[lexer->pos] == '\n' && deb)
+    {
+        len++;
+        lexer->pos++;
+        end = 1;
+    }
+
+    str = realloc(str, len_tot + len + 1);
+    if (end)
+    {
+        strncpy(str + len_tot, lexer->input + lexer->pos - len, len);
+        len_tot += len;
+    }
+    else if (sub)
+    {
+        size_t len_sub = strlen(hoppy);
+        str = realloc(str, len_tot + len_sub + 1);
+        strncpy(str + len_tot, hoppy, len_sub);
+        len_tot += len_sub;
+    }
+    str[len_tot] = '\0';
 
     return str;
 }
@@ -110,7 +162,12 @@ struct token parse_input_for_tok(struct lexer *lexer)
     new.str = NULL;
     if (string == NULL)
     {
+        new.type = TOKEN_EOF;
+    }
+    else if (string[0] == '\n')
+    {
         new.type = TOKEN_NEWLINE;
+        to_free = 0;
     }
     else if (strcmp(string, "Error") == 0)
     {
