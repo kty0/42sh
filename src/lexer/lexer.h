@@ -10,7 +10,6 @@ struct lexer
     struct token current_tok; // The next token, if processed
 };
 
-
 // initialize the lexer
 
 struct lexer *lexer_new(char *input);

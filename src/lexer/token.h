@@ -20,6 +20,5 @@ struct token
 {
     enum token_type type; // The kind of token
     char *str;
-
 };
 #endif /* !TOKEN_H */
