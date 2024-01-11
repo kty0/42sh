@@ -10,7 +10,9 @@ struct lexer
     struct token current_tok; // The next token, if processed
 };
 
+
 // initialize the lexer
+
 struct lexer *lexer_new(char *input);
 struct token lexer_pop(struct lexer *lexer);
 struct token lexer_peek(struct lexer *lexer);
