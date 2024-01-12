@@ -1,0 +1,11 @@
+lib_LIBRARIES = libbuilt_in.a
+
+libbuilt_in_a_SOURCES =  \
+	echo.c \
+	echo.h
+
+libbuilt_in_a_CPPFLAGS = -I$(top_srcdir)/src
+
+libbuilt_in_a_CFLAGS = -std=c99 -Werror -Wall -Wextra -Wvla -pedantic
+
+noinst_LIBRARIES = libbuilt_in.a
