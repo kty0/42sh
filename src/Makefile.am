@@ -2,7 +2,8 @@
 SUBDIRS = ast \
 	parser \
 	lexer \
-	built_in
+	built_in \
+	eval
 
 bin_PROGRAMS = 42sh
 
@@ -16,4 +17,5 @@ bin_PROGRAMS = 42sh
 	ast/libast.a \
 	parser/libparser.a \
 	lexer/liblexer.a \
-	built_in/libbuilt_in.a
+	built_in/libbuilt_in.a \
+	eval/libeval.a
