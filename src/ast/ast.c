@@ -1,6 +1,8 @@
 #include "ast.h"
 
+#include <assert.h>
 #include <err.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 struct ast *ast_new(enum ast_type type)
@@ -80,4 +82,69 @@ int ast_push_child(struct ast *ast, struct ast *child)
     ast->children[len] = NULL;
 
     return 0;
+}
+
+void print(struct ast *ast)
+{
+    switch (ast->type)
+    {
+    case AST_IF:
+        print_if(ast);
+        break;
+    case AST_COMMAND:
+        print_command(ast);
+        break;
+    case AST_LIST:
+        print_list(ast);
+        break;
+    default:
+        break;
+    }
+}
+
+void print_list(struct ast *ast)
+{
+    assert(ast->type == AST_LIST);
+    for (int i = 0; ast->children[i] != NULL; i++)
+    {
+        print(ast->children[i]);
+    }
+}
+
+void print_if(struct ast *ast)
+{
+    assert(ast->type == AST_IF);
+    printf("if { ");
+    print(ast->children[0]);
+    printf("}; then {");
+    print(ast->children[1]);
+    printf("}");
+    int i = 2;
+    for (; ast->children[i] != NULL && ast->children[i + 1] != NULL; i += 2)
+    {
+        printf("elif {");
+        print(ast->children[i]);
+        printf("}; then {");
+        print(ast->children[i + 1]);
+        printf("}");
+    }
+    if (ast->children[i] != NULL)
+    {
+        printf("else {");
+        print(ast->children[i]);
+        printf("}");
+    }
+    printf("fi \n");
+}
+
+void print_command(struct ast *ast)
+{
+    assert(ast->type == AST_COMMAND);
+    printf(" command ");
+    int i = 0;
+    while (ast->args[i] != NULL)
+    {
+        printf("%s ", ast->args[i]);
+        i++;
+    }
 }

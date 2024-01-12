@@ -25,4 +25,9 @@ int ast_push_arg(struct ast *ast, char *arg);
 
 int ast_push_child(struct ast *ast, struct ast *child);
 
+void print_if(struct ast *ast);
+void print_command(struct ast *ast);
+void print_list(struct ast *ast);
+void print(struct ast *ast);
+
 #endif /* !AST_H */
