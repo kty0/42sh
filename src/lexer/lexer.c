@@ -26,7 +26,15 @@ void lexer_free(struct lexer *lexer)
 
 void lexer_skip_whitespace(struct lexer *lexer)
 {
-    while (lexer->input[lexer->pos] == ' ')
+    while (lexer->input[lexer->pos] == ' ' || lexer->input[lexer->pos] == '\t')
+    {
+        lexer->pos++;
+    }
+}
+
+void lexer_skip_comments(struct lexer *lexer)
+{
+    while (lexer->input[lexer->pos] != '\n' && lexer->input[lexer->pos] != '\0')
     {
         lexer->pos++;
     }
@@ -58,15 +66,71 @@ char *str_quote(struct lexer *lexer)
     {
         return NULL;
     }
-    char *str = malloc(len + 1);
+    char *str = malloc(len);
     strncpy(str, begin + 1, len);
-    str[len] = '\0';
 
     return str;
 }
 
 /**
- * Create a string before creating the tokens
+ * check is the caracter is a delimiter or not
+ */
+size_t is_delim(char c)
+{
+    return c == ';' || c == '\0' || c == ' ' || c == '\n';
+}
+
+/**
+ * concatenate a quoted string with a string
+ * use after generating a string from a quoted string
+ */
+void concat_quoted_str(char **str, char *str_sub, int *len_tot)
+{
+    size_t len_sub = strlen(str_sub);
+    *str = realloc(*str, *len_tot + len_sub);
+    strncpy(*str + *len_tot, str_sub, len_sub + 1);
+    *len_tot += len_sub;
+}
+
+/**
+ * concatenate two substring
+ * use before generating a string from a quoted string
+ */
+void concat_str(char **str, char *str_sub, int *len_tot, int len)
+{
+    *str = realloc(*str, *len_tot + len);
+    strncpy(*str + *len_tot, str_sub, len);
+    *len_tot += len;
+}
+
+/**
+ * if the current caractere is a '#' then check if it is a comment or not
+ */
+int check_comment(struct lexer *lexer)
+{
+    if (lexer->input[lexer->pos] == '#')
+    {
+        if (lexer->input[lexer->pos - 1] != '\\')
+            return 1;
+    }
+    return 0;
+}
+
+/**
+ * Check if its is a semicolon or a backslash n to generate a string ";" or "\n"
+ */
+void check_semicolon_and_backslah_n(struct lexer *lexer, size_t *len, int deb)
+{
+    if ((lexer->input[lexer->pos] == ';' || lexer->input[lexer->pos] == '\n')
+        && deb)
+    {
+        (*len)++;
+        lexer->pos++;
+    }
+}
+
+/**
+ * Create a string to creatw the tokens
  */
 char *get_string(struct lexer *lexer)
 {
@@ -75,31 +139,29 @@ char *get_string(struct lexer *lexer)
     {
         return NULL;
     }
+    if (lexer->input[lexer->pos] == '#')
+    {
+        lexer_skip_comments(lexer);
+    }
     char *str = NULL;
     char *hoppy = NULL;
     int sub = 0;
-    int end = 0;
     int len_tot = 0;
     int deb = 1;
-    while (lexer->input[lexer->pos] != ';' && lexer->input[lexer->pos] != '\0'
-           && lexer->input[lexer->pos] != ' '
-           && lexer->input[lexer->pos] != '\n')
+    while (!is_delim(lexer->input[lexer->pos]))
     {
+        if (check_comment(lexer))
+            break;
         deb = 0;
         if (sub)
         {
-            size_t len_sub = strlen(hoppy);
-            str = realloc(str, len_tot + len_sub);
-            strncpy(str + len_tot, hoppy, len_sub);
-            len_tot += len_sub;
+            concat_quoted_str(&str, hoppy, &len_tot);
             len = 0;
             sub = 0;
         }
         if (lexer->input[lexer->pos] == '"' || lexer->input[lexer->pos] == '\'')
         {
-            str = realloc(str, len_tot + len);
-            strncpy(str + len_tot, lexer->input + lexer->pos - len, len);
-            len_tot += len;
+            concat_str(&str, lexer->input + lexer->pos - len, &len_tot, len);
             hoppy = str_quote(lexer);
             if (!hoppy)
             {
@@ -109,41 +171,24 @@ char *get_string(struct lexer *lexer)
                 return s;
             }
             sub = 1;
-            end = 0;
         }
         else
         {
             lexer->pos++;
             len++;
-            end = 1;
+            sub = 0;
         }
     }
-    if (lexer->input[lexer->pos] == ';' && deb)
+    check_semicolon_and_backslah_n(lexer, &len, deb);
+    if (!sub)
     {
-        len++;
-        lexer->pos++;
-        end = 1;
-    }
-    if (lexer->input[lexer->pos] == '\n' && deb)
-    {
-        len++;
-        lexer->pos++;
-        end = 1;
-    }
-
-    str = realloc(str, len_tot + len + 1);
-    if (end)
-    {
-        strncpy(str + len_tot, lexer->input + lexer->pos - len, len);
-        len_tot += len;
+        concat_str(&str, lexer->input + lexer->pos - len, &len_tot, len);
     }
     else if (sub)
     {
-        size_t len_sub = strlen(hoppy);
-        str = realloc(str, len_tot + len_sub + 1);
-        strncpy(str + len_tot, hoppy, len_sub);
-        len_tot += len_sub;
+        concat_quoted_str(&str, hoppy, &len_tot);
     }
+    str = realloc(str, len_tot + 1);
     str[len_tot] = '\0';
 
     return str;

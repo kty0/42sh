@@ -3,11 +3,15 @@
 #include "lexer.h"
 #include "token.h"
 
-char *tab[] = { [TOKEN_IF] = "if",       [TOKEN_THEN] = "then",
-                [TOKEN_ELIF] = "elif",   [TOKEN_ELSE] = "elif",
-                [TOKEN_ELSE] = "else",   [TOKEN_FI] = "fi",
-                [TOKEN_SEMICOLON] = ";", [TOKEN_NEWLINE] = "bah new line hein",
-                [TOKEN_WORDS] = "words", [TOKEN_ERROR] = "error",
+char *tab[] = { [TOKEN_IF] = "if",
+                [TOKEN_THEN] = "then",
+                [TOKEN_ELIF] = "elif",
+                [TOKEN_ELSE] = "else",
+                [TOKEN_FI] = "fi",
+                [TOKEN_SEMICOLON] = ";",
+                [TOKEN_NEWLINE] = "bah new line hein",
+                [TOKEN_WORDS] = "words",
+                [TOKEN_ERROR] = "error",
                 [TOKEN_EOF] = "eof" };
 
 int main(int argc, char *argv[])
@@ -22,7 +26,7 @@ int main(int argc, char *argv[])
            && token.type != TOKEN_EOF)
     {
         if (token.type == TOKEN_WORDS)
-            printf("%s\n", token.str);
+            printf("%s : %s\n", tab[token.type], token.str);
         else
             printf("%s\n", tab[token.type]);
 
