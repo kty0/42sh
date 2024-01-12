@@ -2,7 +2,9 @@ lib_LIBRARIES = libbuilt_in.a
 
 libbuilt_in_a_SOURCES =  \
 	echo.c \
-	echo.h
+	echo.h \
+	true_false.c \
+	true_false.h
 
 libbuilt_in_a_CPPFLAGS = -I$(top_srcdir)/src
 
