@@ -10,7 +10,7 @@ char *tab[] = { [TOKEN_IF] = "if",
                 [TOKEN_FI] = "fi",
                 [TOKEN_SEMICOLON] = ";",
                 [TOKEN_NEWLINE] = "bah new line hein",
-                [TOKEN_WORDS] = "words",
+                [TOKEN_WORD] = "words",
                 [TOKEN_ERROR] = "error",
                 [TOKEN_EOF] = "eof" };
 
@@ -25,8 +25,8 @@ int main(int argc, char *argv[])
     while (token.type != TOKEN_NEWLINE && token.type != TOKEN_ERROR
            && token.type != TOKEN_EOF)
     {
-        if (token.type == TOKEN_WORDS)
-            printf("%s : %s\n", tab[token.type], token.str);
+        if (token.type == TOKEN_WORD)
+            printf("%s : %s\n", tab[token.type], token.value);
         else
             printf("%s\n", tab[token.type]);
 

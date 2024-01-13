@@ -20,7 +20,7 @@ build-job:
   before_script:
     - |
       apk update
-      apk add build-base make tree automake autoconf
+      apk add build-base make tree automake autoconf pkgconfig
   script:
     - autoreconf --install
     - ./configure

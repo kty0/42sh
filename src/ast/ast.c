@@ -35,9 +35,17 @@ void ast_free(struct ast *ast)
         }
     }
 
-    free(ast);
+    if (ast->args != NULL)
+    {
+        for (int i = 0; ast->args[i] != NULL; i++)
+        {
+            free(ast->args[i]);
+        }
+    }
+
     free(ast->children);
     free(ast->args);
+    free(ast);
 }
 
 int ast_push_arg(struct ast *ast, char *arg)
@@ -84,7 +92,7 @@ int ast_push_child(struct ast *ast, struct ast *child)
     return 0;
 }
 
-void print(struct ast *ast)
+void ast_print(struct ast *ast)
 {
     switch (ast->type)
     {
@@ -107,7 +115,7 @@ void print_list(struct ast *ast)
     assert(ast->type == AST_LIST);
     for (int i = 0; ast->children[i] != NULL; i++)
     {
-        print(ast->children[i]);
+        ast_print(ast->children[i]);
     }
 }
 
@@ -115,23 +123,23 @@ void print_if(struct ast *ast)
 {
     assert(ast->type == AST_IF);
     printf("if { ");
-    print(ast->children[0]);
+    ast_print(ast->children[0]);
     printf("}; then {");
-    print(ast->children[1]);
+    ast_print(ast->children[1]);
     printf("}");
     int i = 2;
     for (; ast->children[i] != NULL && ast->children[i + 1] != NULL; i += 2)
     {
         printf("elif {");
-        print(ast->children[i]);
+        ast_print(ast->children[i]);
         printf("}; then {");
-        print(ast->children[i + 1]);
+        ast_print(ast->children[i + 1]);
         printf("}");
     }
     if (ast->children[i] != NULL)
     {
         printf("else {");
-        print(ast->children[i]);
+        ast_print(ast->children[i]);
         printf("}");
     }
     printf("fi \n");

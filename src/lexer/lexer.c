@@ -190,7 +190,7 @@ struct token parse_input_for_tok(struct lexer *lexer)
     lexer_skip_whitespace(lexer);
     char *string = get_string(lexer);
     int to_free = 1;
-    new.str = NULL;
+    new.value = NULL;
     if (string == NULL)
     {
         new.type = TOKEN_EOF;
@@ -202,7 +202,6 @@ struct token parse_input_for_tok(struct lexer *lexer)
     else if (strcmp(string, "Error") == 0)
     {
         new.type = TOKEN_ERROR;
-        to_free = 0;
     }
     else if (strcmp(string, "if") == 0)
     {
@@ -230,8 +229,8 @@ struct token parse_input_for_tok(struct lexer *lexer)
     }
     else
     {
-        new.type = TOKEN_WORDS;
-        new.str = string;
+        new.type = TOKEN_WORD;
+        new.value = string;
         to_free = 0;
     }
     if (to_free)
@@ -259,6 +258,10 @@ struct token lexer_pop(struct lexer *lexer)
 
 void free_token(struct token tok)
 {
-    if (tok.str)
-        free(tok.str);
+    if (tok.value)
+    {
+        free(tok.value);
+    }
+
+    tok.value = NULL;
 }

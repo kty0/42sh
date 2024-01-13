@@ -12,7 +12,7 @@ enum token_type
     TOKEN_FI, // "fi"
     TOKEN_SEMICOLON, // ";"
     TOKEN_NEWLINE, // "\n"
-    TOKEN_WORDS, // words
+    TOKEN_WORD, // words
     TOKEN_ERROR, // error
     TOKEN_EOF // end of file
 };
@@ -20,6 +20,7 @@ enum token_type
 struct token
 {
     enum token_type type; // The kind of token
-    char *str;
+    char *value; // If the token is a number, its value
 };
+
 #endif /* !TOKEN_H */

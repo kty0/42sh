@@ -4,10 +4,8 @@
 enum ast_type
 {
     AST_COMMAND,
-    AST_WORD,
     AST_LIST,
     AST_IF,
-    AST_SHELL
 };
 
 struct ast
@@ -28,6 +26,6 @@ int ast_push_child(struct ast *ast, struct ast *child);
 void print_if(struct ast *ast);
 void print_command(struct ast *ast);
 void print_list(struct ast *ast);
-void print(struct ast *ast);
+void ast_print(struct ast *ast);
 
 #endif /* !AST_H */
