@@ -17,9 +17,9 @@ struct token lexer_pop(struct lexer *lexer);
 struct token lexer_peek(struct lexer *lexer);
 struct token parse_input_for_tok(struct lexer *lexer);
 char *get_string(struct lexer *lexer);
-char *str_quote(struct lexer *lexer);
 void lexer_skip_whitespace(struct lexer *lexer);
 void lexer_free(struct lexer *lexer);
 void free_token(struct token tok);
+void str_quote(struct lexer *lexer, char **str, int *len_tot);
 
 #endif /* !LEXER_H */

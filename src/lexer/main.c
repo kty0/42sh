@@ -39,6 +39,7 @@ int main(int argc, char *argv[])
         printf("newline\n");
     if (token.type == TOKEN_EOF)
         printf("eof\n");
+    free_token(token);
 
     lexer_free(lexer);
 
