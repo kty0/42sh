@@ -1,9 +1,363 @@
 #include "parser.h"
 
+#include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-int parser(char *str)
+#include "../ast/ast.h"
+#include "../lexer/lexer.h"
+
+enum parser_status parse(struct ast **res, struct lexer *lexer)
 {
-    puts(str);
-    return 0;
+    struct token tok = lexer_peek(lexer);
+
+    free_token(tok);
+
+    if (tok.type == TOKEN_NEWLINE || tok.type == TOKEN_EOF)
+    {
+        *res = NULL;
+        return P_OK;
+    }
+
+    if (parse_list(res, lexer) != P_OK)
+    {
+        ast_free(*res);
+        fprintf(stderr, "Mmh no gud\n");
+        return P_KO;
+    }
+
+    tok = lexer_pop(lexer);
+    free_token(tok);
+
+    if (tok.type == TOKEN_NEWLINE || tok.type == TOKEN_EOF)
+    {
+        return P_OK;
+    }
+
+    ast_free(*res);
+    fprintf(stderr, "Mmh no gud\n");
+    return P_KO;
+}
+
+enum parser_status parse_list(struct ast **res, struct lexer *lexer)
+{
+    if (parse_and_or(res, lexer) == P_OK)
+    {
+        struct ast *list = ast_new(AST_LIST);
+        ast_push_child(list, *res);
+
+        struct token tok = lexer_peek(lexer);
+        free_token(tok);
+
+        while (tok.type == TOKEN_SEMICOLON)
+        {
+            tok = lexer_pop(lexer);
+            free_token(tok);
+
+            if (parse_and_or(res, lexer) != P_OK)
+            {
+                break;
+            }
+
+            ast_push_child(list, *res);
+
+            tok = lexer_peek(lexer);
+        }
+
+        free_token(tok);
+
+        *res = list;
+
+        return P_OK;
+    }
+
+    return P_KO;
+}
+
+enum parser_status parse_and_or(struct ast **res, struct lexer *lexer)
+{
+    return parse_pipeline(res, lexer);
+}
+
+enum parser_status parse_pipeline(struct ast **res, struct lexer *lexer)
+{
+    return parse_command(res, lexer);
+}
+
+enum parser_status parse_command(struct ast **res, struct lexer *lexer)
+{
+    return parse_simple_command(res, lexer) == P_OK
+            || parse_shell_command(res, lexer) == P_OK
+        ? P_OK
+        : P_KO;
+}
+
+enum parser_status parse_shell_command(struct ast **res, struct lexer *lexer)
+{
+    return parse_rule_if(res, lexer);
+}
+
+enum parser_status parse_rule_if(struct ast **res, struct lexer *lexer)
+{
+    struct token tok = lexer_peek(lexer);
+    free_token(tok);
+
+    if (tok.type != TOKEN_IF)
+    {
+        return P_KO;
+    }
+
+    lexer_pop(lexer);
+    free_token(tok);
+
+    struct ast *node_if = ast_new(AST_IF);
+
+    if (parse_compound_list(res, lexer) == P_KO)
+    {
+        ast_free(node_if);
+        return P_KO;
+    }
+
+    ast_push_child(node_if, *res);
+
+    tok = lexer_peek(lexer);
+    free_token(tok);
+
+    if (tok.type != TOKEN_THEN)
+    {
+        ast_free(node_if);
+        return P_KO;
+    }
+
+    tok = lexer_pop(lexer);
+    free_token(tok);
+
+    if (parse_compound_list(res, lexer) == P_KO)
+    {
+        ast_free(node_if);
+        return P_KO;
+    }
+
+    ast_push_child(node_if, *res);
+
+    tok = lexer_peek(lexer);
+    free_token(tok);
+
+    *res = node_if;
+
+    if (tok.type == TOKEN_FI)
+    {
+        tok = lexer_pop(lexer);
+        free_token(tok);
+        return P_OK;
+    }
+
+    if (parse_else_clause(res, lexer) != P_OK)
+    {
+        ast_free(node_if);
+        return P_KO;
+    }
+
+    tok = lexer_peek(lexer);
+    free_token(tok);
+
+    if (tok.type != TOKEN_FI)
+    {
+        return P_KO;
+    }
+
+    lexer_pop(lexer);
+    free_token(tok);
+
+    *res = node_if;
+
+    return P_OK;
+}
+
+enum parser_status parse_compound_list(struct ast **res, struct lexer *lexer)
+{
+    struct token tok = lexer_peek(lexer);
+    free_token(tok);
+
+    while (tok.type == TOKEN_NEWLINE)
+    {
+        tok = lexer_pop(lexer);
+        free_token(tok);
+
+        tok = lexer_peek(lexer);
+        free_token(tok);
+    }
+
+    if (parse_and_or(res, lexer) == P_OK)
+    {
+        struct ast *list = ast_new(AST_LIST);
+        ast_push_child(list, *res);
+
+        struct token tok = lexer_peek(lexer);
+        free_token(tok);
+
+        while (tok.type == TOKEN_SEMICOLON || tok.type == TOKEN_NEWLINE)
+        {
+            tok = lexer_pop(lexer);
+            free_token(tok);
+
+            tok = lexer_peek(lexer);
+            free_token(tok);
+
+            while (tok.type == TOKEN_NEWLINE)
+            {
+                tok = lexer_pop(lexer);
+                free_token(tok);
+
+                tok = lexer_peek(lexer);
+                free_token(tok);
+            }
+
+            if (parse_and_or(res, lexer) == P_KO)
+            {
+                break;
+            }
+
+            ast_push_child(list, *res);
+
+            tok = lexer_peek(lexer);
+            free_token(tok);
+        }
+
+        tok = lexer_peek(lexer);
+        free_token(tok);
+
+        while (tok.type == TOKEN_NEWLINE)
+        {
+            tok = lexer_pop(lexer);
+            free_token(tok);
+
+            tok = lexer_peek(lexer);
+            free_token(tok);
+        }
+
+        *res = list;
+
+        return P_OK;
+    }
+
+    return P_KO;
+}
+
+enum parser_status parse_else_clause(struct ast **res, struct lexer *lexer)
+{
+    struct token tok = lexer_peek(lexer);
+    free_token(tok);
+
+    struct ast *node_if = *res;
+
+    if (tok.type == TOKEN_ELSE)
+    {
+        tok = lexer_pop(lexer);
+        free_token(tok);
+
+        if (parse_compound_list(res, lexer) == P_OK)
+        {
+            ast_push_child(node_if, *res);
+            return P_OK;
+        }
+        else
+        {
+            return P_KO;
+        }
+    }
+    else if (tok.type == TOKEN_ELIF)
+    {
+        tok = lexer_pop(lexer);
+        free_token(tok);
+
+        if (parse_compound_list(res, lexer) != P_OK)
+        {
+            return P_KO;
+        }
+
+        ast_push_child(node_if, *res);
+
+        tok = lexer_peek(lexer);
+        free_token(tok);
+
+        if (tok.type != TOKEN_THEN)
+        {
+            return P_KO;
+        }
+
+        tok = lexer_pop(lexer);
+        free_token(tok);
+
+        if (parse_compound_list(res, lexer) != P_OK)
+        {
+            return P_KO;
+        }
+
+        ast_push_child(node_if, *res);
+
+        tok = lexer_peek(lexer);
+        free_token(tok);
+
+        if (tok.type == TOKEN_ELSE || tok.type == TOKEN_ELIF)
+        {
+            *res = node_if;
+
+            if (parse_else_clause(res, lexer) != P_OK)
+            {
+                return P_KO;
+            }
+        }
+
+        return P_OK;
+    }
+
+    return P_OK;
+}
+
+enum parser_status parse_simple_command(struct ast **res, struct lexer *lexer)
+{
+    struct token tok = lexer_peek(lexer);
+    free_token(tok);
+
+    if (tok.type == TOKEN_WORD)
+    {
+        tok = lexer_pop(lexer);
+
+        struct ast *node = ast_new(AST_COMMAND);
+
+        if (ast_push_arg(node, tok.value))
+        {
+            ast_free(node);
+            return P_KO;
+        }
+
+        *res = node;
+
+        while (parse_element(res, lexer) == P_OK)
+        {
+            continue;
+        }
+
+        return P_OK;
+    }
+
+    return P_KO;
+}
+
+enum parser_status parse_element(struct ast **res, struct lexer *lexer)
+{
+    struct token tok = lexer_peek(lexer);
+    free_token(tok);
+
+    if (tok.type == TOKEN_WORD)
+    {
+        tok = lexer_pop(lexer);
+
+        ast_push_arg(*res, tok.value);
+
+        return P_OK;
+    }
+
+    return P_KO;
 }

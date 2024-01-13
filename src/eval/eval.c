@@ -61,7 +61,9 @@ static int eval_cmd(struct ast *ast)
 {
     if (strcmp(ast->args[0], "echo") == 0)
     {
-        return echo(ast->args);
+        int res = echo(ast->args);
+        fflush(stdout);
+        return res;
     }
     else if (strcmp(ast->args[0], "true") == 0)
     {

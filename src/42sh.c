@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "ast/ast.h"
+#include "eval/eval.h"
+#include "lexer/lexer.h"
 #include "parser/parser.h"
 #include "quarantedeuxsh.h"
 
@@ -19,9 +22,28 @@ int main(int argc, char *argv[])
             return 1;
         }
 
-        int res = parser(input);
+        struct lexer *lexer = lexer_new(input);
+        struct ast *ast;
 
         free(input);
+
+        if (parse(&ast, lexer) == P_KO)
+        {
+            lexer_free(lexer);
+            errx(1, "42sh: Syntax error");
+        }
+
+        lexer_free(lexer);
+
+        if (getenv("PRETTY"))
+        {
+            ast_print(ast);
+            puts("");
+        }
+
+        int res = eval(ast);
+
+        ast_free(ast);
 
         return res;
     }
@@ -30,7 +52,28 @@ int main(int argc, char *argv[])
     {
         if (strcmp(argv[1], "-c") == 0)
         {
-            return parser(argv[2]);
+            struct lexer *lexer = lexer_new(argv[2]);
+            struct ast *ast;
+
+            if (parse(&ast, lexer) == P_KO)
+            {
+                lexer_free(lexer);
+                errx(1, "42sh: Syntax error");
+            }
+
+            lexer_free(lexer);
+
+            if (getenv("PRETTY"))
+            {
+                ast_print(ast);
+                puts("");
+            }
+
+            int res = eval(ast);
+
+            ast_free(ast);
+
+            return res;
         }
         else
         {
@@ -45,9 +88,28 @@ int main(int argc, char *argv[])
             return 1;
         }
 
-        int res = parser(input);
+        struct lexer *lexer = lexer_new(input);
+        struct ast *ast;
 
         free(input);
+
+        if (parse(&ast, lexer) == P_KO)
+        {
+            lexer_free(lexer);
+            errx(1, "42sh: Syntax error");
+        }
+
+        lexer_free(lexer);
+
+        if (getenv("PRETTY"))
+        {
+            ast_print(ast);
+            puts("");
+        }
+
+        int res = eval(ast);
+
+        ast_free(ast);
 
         return res;
     }
@@ -66,6 +128,8 @@ static char *get_input(enum source source, char *file)
     char *input = malloc(BUFFER_SIZE);
     if (input == NULL)
     {
+        fclose(fd);
+
         return NULL;
     }
 
@@ -78,6 +142,8 @@ static char *get_input(enum source source, char *file)
         if (temp == NULL)
         {
             free(input);
+            fclose(fd);
+
             return NULL;
         }
         input = temp;
