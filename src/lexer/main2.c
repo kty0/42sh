@@ -39,6 +39,7 @@ int main(int argc, char *argv[])
     }
     if (token.type == TOKEN_ERROR)
         printf("ALED\n");
+    free_token(token);
     if (token.type == TOKEN_EOF)
         printf("eof\n");
 
