@@ -10,6 +10,7 @@
 #include "parser/parser.h"
 #include "quarantedeuxsh.h"
 
+static int eval_input(char *input);
 static char *get_input(enum source source, char *file);
 
 int main(int argc, char *argv[])
@@ -22,57 +23,32 @@ int main(int argc, char *argv[])
             return 1;
         }
 
-        struct lexer *lexer = lexer_new(input);
-        struct ast *ast;
-
-        if (parse(&ast, lexer) == P_KO)
+        int res = eval_input(input);
+        if (res == -1)
         {
-            lexer_free(lexer);
             errx(1, "syntax error");
         }
-
-        free(input);
-        lexer_free(lexer);
-
-        if (getenv("PRETTY"))
+        else
         {
-            ast_print(ast);
-            puts("");
+            return res;
         }
-
-        int res = eval(ast);
-
-        ast_free(ast);
-
-        return res;
     }
 
     if (argv[1][0] == '-')
     {
         if (strcmp(argv[1], "-c") == 0)
         {
-            struct lexer *lexer = lexer_new(argv[2]);
-            struct ast *ast;
-
-            if (parse(&ast, lexer) == P_KO)
+            int res = eval_input(argv[2]);
+            if (res == -1)
             {
                 lexer_free(lexer);
                 errx(1, "syntax error");
             }
-
-            lexer_free(lexer);
-
-            if (getenv("PRETTY"))
+            else
             {
-                ast_print(ast);
-                puts("");
+                return res;
             }
 
-            int res = eval(ast);
-
-            ast_free(ast);
-
-            return res;
         }
         else
         {
@@ -87,32 +63,46 @@ int main(int argc, char *argv[])
             return 1;
         }
 
-        struct lexer *lexer = lexer_new(input);
-        struct ast *ast;
-
-        if (parse(&ast, lexer) == P_KO)
+        int res = eval_input(input);
+        if (res == -1)
         {
-            lexer_free(lexer);
             errx(1, "syntax error");
         }
-
-        free(input);
-        lexer_free(lexer);
-
-        if (getenv("PRETTY"))
+        else
         {
-            ast_print(ast);
-            puts("");
+            return res;
         }
-
-        int res = eval(ast);
-
-        ast_free(ast);
-
-        return res;
     }
 
     return 1;
+}
+
+static int eval_input(char *input)
+{
+    struct lexer *lexer = lexer_new(input);
+    struct ast *ast;
+
+    free(input);
+
+    if (parse(&ast, lexer) == P_KO)
+    {
+        lexer_free(lexer);
+        return -1;
+    }
+
+    lexer_free(lexer);
+
+    if (getenv("PRETTY"))
+    {
+        ast_print(ast);
+        puts("");
+    }
+
+    int res = eval(ast);
+
+    ast_free(ast);
+
+    return res;
 }
 
 static char *get_input(enum source source, char *file)
