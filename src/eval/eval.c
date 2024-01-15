@@ -1,5 +1,6 @@
 #include "eval.h"
 
+#include <err.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -83,7 +84,7 @@ static int eval_cmd(struct ast *ast)
 
         if (pid == 0)
         {
-            return execvp(ast->args[0], ast->args);
+            errx(execvp(ast->args[0], ast->args), "missing command");
         }
 
         int wstatus;
