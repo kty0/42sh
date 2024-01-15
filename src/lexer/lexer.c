@@ -24,7 +24,7 @@ void lexer_free(struct lexer *lexer)
     free(lexer);
 }
 
-void lexer_skip_whitespace(struct lexer *lexer)
+static void lexer_skip_whitespace(struct lexer *lexer)
 {
     while (lexer->input[lexer->pos] == ' ' || lexer->input[lexer->pos] == '\t')
     {
@@ -32,7 +32,7 @@ void lexer_skip_whitespace(struct lexer *lexer)
     }
 }
 
-void lexer_skip_comments(struct lexer *lexer)
+static void lexer_skip_comments(struct lexer *lexer)
 {
     while (lexer->input[lexer->pos] != '\n' && lexer->input[lexer->pos] != '\0')
     {
@@ -44,7 +44,7 @@ void lexer_skip_comments(struct lexer *lexer)
  * concatenate a quoted string with a string
  * use after generating a string from a quoted string
  */
-void concat_quoted_str(char **str, char *str_sub, int *len_tot)
+static void concat_quoted_str(char **str, char *str_sub, int *len_tot)
 {
     size_t len_sub = strlen(str_sub) + 1;
     *str = realloc(*str, *len_tot + len_sub);
@@ -57,7 +57,7 @@ void concat_quoted_str(char **str, char *str_sub, int *len_tot)
  * generate a string fromm the quoted string and concatenate it into the full
  * string
  */
-void str_quote(struct lexer *lexer, char **str, int *len_tot)
+static void str_quote(struct lexer *lexer, char **str, int *len_tot)
 {
     char *begin = lexer->input + lexer->pos++;
     int len = 0;
@@ -92,7 +92,7 @@ void str_quote(struct lexer *lexer, char **str, int *len_tot)
 /**
  * check is the caracter is a delimiter or not
  */
-size_t is_delim(char c)
+static size_t is_delim(char c)
 {
     return c == ';' || c == '\0' || c == ' ' || c == '\n';
 }
@@ -101,7 +101,7 @@ size_t is_delim(char c)
  * concatenate two substring
  * use before generating a string from a quoted string
  */
-void concat_str(char **str, char *str_sub, int *len_tot, int len)
+static void concat_str(char **str, char *str_sub, int *len_tot, int len)
 {
     *str = realloc(*str, *len_tot + len);
     strncpy(*str + *len_tot, str_sub, len);
@@ -111,7 +111,7 @@ void concat_str(char **str, char *str_sub, int *len_tot, int len)
 /**
  * if the current caractere is a '#' then check if it is a comment or not
  */
-int check_comment(struct lexer *lexer)
+static int check_comment(struct lexer *lexer)
 {
     if (lexer->input[lexer->pos] == '#')
     {
@@ -124,7 +124,8 @@ int check_comment(struct lexer *lexer)
 /**
  * Check if its is a semicolon or a backslash n to generate a string ";" or "\n"
  */
-void check_semicolon_and_backslah_n(struct lexer *lexer, size_t *len, int deb)
+static void check_semicolon_and_backslah_n(struct lexer *lexer, size_t *len,
+                                           int deb)
 {
     if ((lexer->input[lexer->pos] == ';' || lexer->input[lexer->pos] == '\n')
         && deb)
@@ -137,7 +138,7 @@ void check_semicolon_and_backslah_n(struct lexer *lexer, size_t *len, int deb)
 /**
  * Create a string to creatw the tokens
  */
-char *get_string(struct lexer *lexer)
+static char *get_string(struct lexer *lexer)
 {
     size_t len = 0;
     if (lexer->input[lexer->pos] == '\0')
@@ -184,7 +185,7 @@ char *get_string(struct lexer *lexer)
 /**
  * Create the token from the input string
  */
-struct token parse_input_for_tok(struct lexer *lexer)
+static struct token parse_input_for_tok(struct lexer *lexer)
 {
     struct token new;
     lexer_skip_whitespace(lexer);
@@ -254,6 +255,20 @@ struct token lexer_pop(struct lexer *lexer)
     lexer->current_tok = parse_input_for_tok(lexer);
     curr_tok = lexer->current_tok;
     return curr_tok;
+}
+
+struct token lexer_peek_free(struct lexer *lexer)
+{
+    struct token res = lexer_peek(lexer);
+    free_token(res);
+    return res;
+}
+
+struct token lexer_pop_free(struct lexer *lexer)
+{
+    struct token res = lexer_pop(lexer);
+    free_token(res);
+    return res;
 }
 
 void free_token(struct token tok)
