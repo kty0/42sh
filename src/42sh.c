@@ -25,14 +25,13 @@ int main(int argc, char *argv[])
         struct lexer *lexer = lexer_new(input);
         struct ast *ast;
 
-        free(input);
-
         if (parse(&ast, lexer) == P_KO)
         {
             lexer_free(lexer);
-            errx(1, "42sh: Syntax error");
+            errx(1, "syntax error");
         }
 
+        free(input);
         lexer_free(lexer);
 
         if (getenv("PRETTY"))
@@ -58,7 +57,7 @@ int main(int argc, char *argv[])
             if (parse(&ast, lexer) == P_KO)
             {
                 lexer_free(lexer);
-                errx(1, "42sh: Syntax error");
+                errx(1, "syntax error");
             }
 
             lexer_free(lexer);
@@ -77,7 +76,7 @@ int main(int argc, char *argv[])
         }
         else
         {
-            errx(1, "42sh: Usage: ./42sh [OPTIONS] [SCRIPT] [ARGUMENTS...]");
+            errx(1, "usage: ./42sh [OPTIONS] [SCRIPT] [ARGUMENTS...]");
         }
     }
     else
@@ -91,14 +90,13 @@ int main(int argc, char *argv[])
         struct lexer *lexer = lexer_new(input);
         struct ast *ast;
 
-        free(input);
-
         if (parse(&ast, lexer) == P_KO)
         {
             lexer_free(lexer);
-            errx(1, "42sh: Syntax error");
+            errx(1, "syntax error");
         }
 
+        free(input);
         lexer_free(lexer);
 
         if (getenv("PRETTY"))
@@ -125,7 +123,7 @@ static char *get_input(enum source source, char *file)
         return NULL;
     }
 
-    char *input = malloc(BUFFER_SIZE);
+    char *input = calloc(BUFFER_SIZE, sizeof(char));
     if (input == NULL)
     {
         fclose(fd);
@@ -147,6 +145,11 @@ static char *get_input(enum source source, char *file)
             return NULL;
         }
         input = temp;
+
+        for (int i = BUFFER_SIZE * iter; i < BUFFER_SIZE * (iter + 1); i++)
+        {
+            input[i] = 0;
+        }
     }
 
     fclose(fd);
