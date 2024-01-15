@@ -41,7 +41,6 @@ int main(int argc, char *argv[])
             int res = eval_input(argv[2]);
             if (res == -1)
             {
-                lexer_free(lexer);
                 errx(1, "syntax error");
             }
             else
@@ -143,6 +142,8 @@ static char *get_input(enum source source, char *file)
     }
 
     fclose(fd);
+
+    puts(input);
 
     return input;
 }
