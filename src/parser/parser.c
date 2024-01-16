@@ -91,6 +91,26 @@ static enum parser_status parse_and_or(struct ast **res, struct lexer *lexer)
 
 static enum parser_status parse_pipeline(struct ast **res, struct lexer *lexer)
 {
+    struct token tok = lexer_peek_free(lexer);
+
+    if (tok.type == TOKEN_NOT)
+    {
+        tok = lexer_pop_free(lexer);
+
+        struct ast *node_not = ast_new(AST_NOT);
+
+        if (parse_command(res, lexer) != P_OK)
+        {
+            return P_KO;
+        }
+
+        ast_push_child(node_not, *res);
+
+        *res = node_not;
+
+        return P_OK;
+    }
+
     return parse_command(res, lexer);
 }
 
