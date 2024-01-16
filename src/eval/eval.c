@@ -16,6 +16,7 @@
 static int eval_if(struct ast *ast);
 static int eval_cmd(struct ast *ast);
 static int eval_list(struct ast *ast);
+static int eval_not(struct ast *ast);
 
 int eval(struct ast *ast)
 {
@@ -31,6 +32,10 @@ int eval(struct ast *ast)
     else if (ast->type == AST_COMMAND)
     {
         return eval_cmd(ast);
+    }
+    else if (ast->type == AST_NOT)
+    {
+        return eval_not(ast);
     }
     else
     {
@@ -104,4 +109,9 @@ static int eval_list(struct ast *ast)
     }
 
     return res;
+}
+
+static int eval_not(struct ast *ast)
+{
+    return !eval(ast->children[0]);
 }
