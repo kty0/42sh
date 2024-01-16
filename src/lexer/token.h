@@ -14,7 +14,8 @@ enum token_type
     TOKEN_NEWLINE, // "\n"
     TOKEN_WORD, // words
     TOKEN_ERROR, // error
-    TOKEN_EOF // end of file
+    TOKEN_EOF, // end of file
+    TOKEN_NOT,
 };
 
 struct token

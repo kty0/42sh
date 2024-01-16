@@ -6,6 +6,7 @@ enum ast_type
     AST_COMMAND,
     AST_LIST,
     AST_IF,
+    AST_NOT,
 };
 
 struct ast
