@@ -15,7 +15,8 @@ enum token_type
     TOKEN_WORD, // words
     TOKEN_ERROR, // error
     TOKEN_EOF, // end of file
-    TOKEN_NOT,
+    TOKEN_NOT, // not
+    TOKEN_PIPE, // pipe
 };
 
 struct token

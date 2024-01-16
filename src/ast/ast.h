@@ -7,6 +7,7 @@ enum ast_type
     AST_LIST,
     AST_IF,
     AST_NOT,
+    AST_PIPE,
 };
 
 struct ast
