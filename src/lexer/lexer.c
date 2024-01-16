@@ -31,12 +31,28 @@ static void lexer_skip_whitespace(struct lexer *lexer)
         lexer->pos++;
     }
 }
+/**
+ * if the current caractere is a '#' then check if it is a comment or not
+ */
+static int check_comment(struct lexer *lexer)
+{
+    if (lexer->input[lexer->pos] == '#' && lexer->input[lexer->pos - 1] == '\\')
+    {
+        return 1;
+    }
+    return 0;
+}
 
 static void lexer_skip_comments(struct lexer *lexer)
 {
-    while (lexer->input[lexer->pos] != '\n' && lexer->input[lexer->pos] != '\0')
+    if (lexer->input[lexer->pos] == '#'
+        && (lexer->pos == 0 || lexer->input[lexer->pos - 1] != '\\'))
     {
-        lexer->pos++;
+        while (lexer->input[lexer->pos] != '\n'
+               && lexer->input[lexer->pos] != '\0')
+        {
+            lexer->pos++;
+        }
     }
 }
 
@@ -109,26 +125,13 @@ static void concat_str(char **str, char *str_sub, int *len_tot, int len)
 }
 
 /**
- * if the current caractere is a '#' then check if it is a comment or not
- */
-static int check_comment(struct lexer *lexer)
-{
-    if (lexer->input[lexer->pos] == '#')
-    {
-        if (lexer->input[lexer->pos - 1] != '\\')
-            return 1;
-    }
-    return 0;
-}
-
-/**
  * Check if its is a semicolon or a backslash n to generate a string ";" or "\n"
  */
 static void check_semicolon_and_backslah_n(struct lexer *lexer, size_t *len,
                                            int deb)
 {
     if ((lexer->input[lexer->pos] == ';' || lexer->input[lexer->pos] == '\n')
-        && deb)
+        && deb == 1)
     {
         (*len)++;
         lexer->pos++;
@@ -145,18 +148,15 @@ static char *get_string(struct lexer *lexer)
     {
         return NULL;
     }
-    if (lexer->input[lexer->pos] == '#')
-    {
-        lexer_skip_comments(lexer);
-    }
+
     char *str = NULL;
     int len_tot = 0;
     int deb = 1;
     while (!is_delim(lexer->input[lexer->pos]))
     {
-        if (check_comment(lexer))
-            break;
-        deb = 0;
+        if (check_comment(lexer) && deb == 2)
+            len--;
+        deb++;
         if (lexer->input[lexer->pos] == '"' || lexer->input[lexer->pos] == '\'')
         {
             concat_str(&str, lexer->input + lexer->pos - len, &len_tot, len);
@@ -189,6 +189,7 @@ static struct token parse_input_for_tok(struct lexer *lexer)
 {
     struct token new;
     lexer_skip_whitespace(lexer);
+    lexer_skip_comments(lexer);
     char *string = get_string(lexer);
     int to_free = 1;
     new.value = NULL;

@@ -1,5 +1,7 @@
 #include <fcntl.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include "lexer.h"
@@ -12,7 +14,7 @@ char *tab[] = { [TOKEN_IF] = "if",
                 [TOKEN_FI] = "fi",
                 [TOKEN_SEMICOLON] = ";",
                 [TOKEN_NEWLINE] = "bah new line hein",
-                [TOKEN_WORDS] = "words",
+                [TOKEN_WORD] = "words",
                 [TOKEN_ERROR] = "error",
                 [TOKEN_EOF] = "eof" };
 
@@ -22,15 +24,24 @@ int main(int argc, char *argv[])
         return 1;
     int fd = open(argv[1], O_RDONLY);
     char buffer[4096];
-    read(fd, buffer, 4096);
+
+    struct stat sb;
+    if (stat(argv[1], &sb) == -1)
+    {
+        perror("stat");
+        exit(EXIT_FAILURE);
+    }
+
+    read(fd, buffer, sb.st_size);
+    buffer[sb.st_size] = '\0';
 
     struct lexer *lexer = lexer_new(buffer);
     struct token token = lexer_pop(lexer);
 
     while (token.type != TOKEN_ERROR && token.type != TOKEN_EOF)
     {
-        if (token.type == TOKEN_WORDS)
-            printf("%s:\t%s\n", tab[token.type], token.str);
+        if (token.type == TOKEN_WORD)
+            printf("%s:\t%s\n", tab[token.type], token.value);
         else
             printf("%s\n", tab[token.type]);
 
