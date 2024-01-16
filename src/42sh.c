@@ -11,6 +11,7 @@
 #include "quarantedeuxsh.h"
 
 static char *get_input(enum source source, char *file);
+static int eval_input(char *input, enum source source);
 
 int main(int argc, char *argv[])
 {
@@ -21,58 +22,24 @@ int main(int argc, char *argv[])
         {
             return 1;
         }
-
-        struct lexer *lexer = lexer_new(input);
-        struct ast *ast;
-
-        if (parse(&ast, lexer) == P_KO)
+        int result = eval_input(input, STDIN);
+        if (result == -1)
         {
-            lexer_free(lexer);
             errx(1, "syntax error");
         }
-
-        free(input);
-        lexer_free(lexer);
-
-        if (getenv("PRETTY"))
-        {
-            ast_print(ast);
-            puts("");
-        }
-
-        int res = eval(ast);
-
-        ast_free(ast);
-
-        return res;
+        return result;
     }
 
     if (argv[1][0] == '-')
     {
         if (strcmp(argv[1], "-c") == 0)
         {
-            struct lexer *lexer = lexer_new(argv[2]);
-            struct ast *ast;
-
-            if (parse(&ast, lexer) == P_KO)
+            int result = eval_input(argv[2], ARGV);
+            if (result == -1)
             {
-                lexer_free(lexer);
                 errx(1, "syntax error");
             }
-
-            lexer_free(lexer);
-
-            if (getenv("PRETTY"))
-            {
-                ast_print(ast);
-                puts("");
-            }
-
-            int res = eval(ast);
-
-            ast_free(ast);
-
-            return res;
+            return result;
         }
         else
         {
@@ -87,32 +54,45 @@ int main(int argc, char *argv[])
             return 1;
         }
 
-        struct lexer *lexer = lexer_new(input);
-        struct ast *ast;
-
-        if (parse(&ast, lexer) == P_KO)
+        int result = eval_input(input, SCRIPT);
+        if (result == -1)
         {
-            lexer_free(lexer);
             errx(1, "syntax error");
         }
-
-        free(input);
-        lexer_free(lexer);
-
-        if (getenv("PRETTY"))
-        {
-            ast_print(ast);
-            puts("");
-        }
-
-        int res = eval(ast);
-
-        ast_free(ast);
-
-        return res;
+        return result;
     }
 
     return 1;
+}
+
+static int eval_input(char *input, enum source source)
+{
+    struct lexer *lexer = lexer_new(input);
+    struct ast *ast;
+
+    if (parse(&ast, lexer) == P_KO)
+    {
+        lexer_free(lexer);
+        return -1;
+    }
+
+    if (source != ARGV)
+    {
+        free(input);
+    }
+    lexer_free(lexer);
+
+    if (getenv("PRETTY"))
+    {
+        ast_print(ast);
+        puts("");
+    }
+
+    int res = eval(ast);
+
+    ast_free(ast);
+
+    return res;
 }
 
 static char *get_input(enum source source, char *file)

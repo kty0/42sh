@@ -12,6 +12,7 @@ struct lexer
 
 // initialize the lexer
 
+void concat_quoted_str(char **str, char *str_sub, int *len_tot);
 struct lexer *lexer_new(char *input);
 struct token lexer_pop(struct lexer *lexer);
 struct token lexer_peek(struct lexer *lexer);

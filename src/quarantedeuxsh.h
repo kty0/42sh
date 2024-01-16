@@ -5,6 +5,7 @@
 
 enum source
 {
+    ARGV,
     SCRIPT,
     STDIN
 };

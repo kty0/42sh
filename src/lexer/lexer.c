@@ -44,7 +44,7 @@ static void lexer_skip_comments(struct lexer *lexer)
  * concatenate a quoted string with a string
  * use after generating a string from a quoted string
  */
-static void concat_quoted_str(char **str, char *str_sub, int *len_tot)
+void concat_quoted_str(char **str, char *str_sub, int *len_tot)
 {
     size_t len_sub = strlen(str_sub) + 1;
     *str = realloc(*str, *len_tot + len_sub);
