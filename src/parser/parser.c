@@ -28,6 +28,11 @@ enum parser_status parse(struct ast **res, struct lexer *lexer)
 
     if (tok.type == TOKEN_NEWLINE || tok.type == TOKEN_EOF)
     {
+        if (tok.type == TOKEN_NEWLINE)
+        {
+            lexer_pop_free(lexer);
+        }
+
         *res = NULL;
         return P_OK;
     }
@@ -39,10 +44,15 @@ enum parser_status parse(struct ast **res, struct lexer *lexer)
         return P_KO;
     }
 
-    tok = lexer_pop_free(lexer);
+    tok = lexer_peek_free(lexer);
 
     if (tok.type == TOKEN_NEWLINE || tok.type == TOKEN_EOF)
     {
+        if (tok.type == TOKEN_NEWLINE)
+        {
+            lexer_pop_free(lexer);
+        }
+
         return P_OK;
     }
 

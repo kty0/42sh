@@ -70,10 +70,28 @@ static int eval_input(char *input, enum source source)
     struct lexer *lexer = lexer_new(input);
     struct ast *ast;
 
-    if (parse(&ast, lexer) == P_KO)
+    struct token tok = lexer_peek_free(lexer);
+    int res = 0;
+
+    while (tok.type != TOKEN_EOF)
     {
-        lexer_free(lexer);
-        return -1;
+        if (parse(&ast, lexer) == P_KO)
+        {
+            lexer_free(lexer);
+            return 1;
+        }
+
+        if (getenv("PRETTY"))
+        {
+            ast_print(ast);
+            puts("");
+        }
+
+        res = eval(ast);
+
+        ast_free(ast);
+
+        tok = lexer_peek_free(lexer);
     }
 
     if (source != ARGV)
@@ -81,16 +99,6 @@ static int eval_input(char *input, enum source source)
         free(input);
     }
     lexer_free(lexer);
-
-    if (getenv("PRETTY"))
-    {
-        ast_print(ast);
-        puts("");
-    }
-
-    int res = eval(ast);
-
-    ast_free(ast);
 
     return res;
 }
