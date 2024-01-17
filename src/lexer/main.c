@@ -12,7 +12,15 @@ char *tab[] = { [TOKEN_IF] = "if",
                 [TOKEN_NEWLINE] = "bah new line hein",
                 [TOKEN_WORD] = "words",
                 [TOKEN_ERROR] = "error",
-                [TOKEN_EOF] = "eof" };
+                [TOKEN_EOF] = "eof",
+                [TOKEN_NOT] = "!",
+                [TOKEN_PIPE] = "|",
+                [TOKEN_WHILE] = "while",
+                [TOKEN_UNTIL] = "until",
+                [TOKEN_DO] = "do",
+                [TOKEN_DONE] = "done",
+                [TOKEN_FOR] = "for",
+                [TOKEN_IN] = "in" };
 
 int main(int argc, char *argv[])
 {

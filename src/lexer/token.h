@@ -17,6 +17,12 @@ enum token_type
     TOKEN_EOF, // end of file
     TOKEN_NOT, // not
     TOKEN_PIPE, // pipe
+    TOKEN_WHILE, // while
+    TOKEN_DO, // do
+    TOKEN_DONE, // done
+    TOKEN_UNTIL, // until
+    TOKEN_FOR, // for
+    TOKEN_IN // in
 };
 
 struct token

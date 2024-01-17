@@ -110,7 +110,7 @@ static void str_quote(struct lexer *lexer, char **str, int *len_tot)
  */
 static size_t is_delim(char c)
 {
-    return c == ';' || c == '\0' || c == ' ' || c == '\n';
+    return c == ';' || c == '\0' || c == ' ' || c == '\n' || c == '|';
 }
 
 /**
@@ -124,13 +124,10 @@ static void concat_str(char **str, char *str_sub, int *len_tot, int len)
     *len_tot += len;
 }
 
-/**
- * Check if its is a semicolon or a backslash n to generate a string ";" or "\n"
- */
-static void check_semicolon_and_backslah_n(struct lexer *lexer, size_t *len,
-                                           int deb)
+static void check_delim_token(struct lexer *lexer, size_t *len, int deb)
 {
-    if ((lexer->input[lexer->pos] == ';' || lexer->input[lexer->pos] == '\n')
+    if ((lexer->input[lexer->pos] == ';' || lexer->input[lexer->pos] == '\n'
+         || lexer->input[lexer->pos] == '|')
         && deb == 1)
     {
         (*len)++;
@@ -174,7 +171,7 @@ static char *get_string(struct lexer *lexer)
             len++;
         }
     }
-    check_semicolon_and_backslah_n(lexer, &len, deb);
+    check_delim_token(lexer, &len, deb);
     concat_str(&str, lexer->input + lexer->pos - len, &len_tot, len);
     str = realloc(str, len_tot + 1);
     str[len_tot] = '\0';
@@ -228,6 +225,38 @@ static struct token parse_input_for_tok(struct lexer *lexer)
     else if (strcmp(string, ";") == 0)
     {
         new.type = TOKEN_SEMICOLON;
+    }
+    else if (strcmp(string, "|") == 0)
+    {
+        new.type = TOKEN_PIPE;
+    }
+    else if (strcmp(string, "!") == 0)
+    {
+        new.type = TOKEN_NOT;
+    }
+    else if (strcmp(string, "while") == 0)
+    {
+        new.type = TOKEN_WHILE;
+    }
+    else if (strcmp(string, "done") == 0)
+    {
+        new.type = TOKEN_DONE;
+    }
+    else if (strcmp(string, "do") == 0)
+    {
+        new.type = TOKEN_DO;
+    }
+    else if (strcmp(string, "until") == 0)
+    {
+        new.type = TOKEN_UNTIL;
+    }
+    else if (strcmp(string, "for") == 0)
+    {
+        new.type = TOKEN_FOR;
+    }
+    else if (strcmp(string, "in") == 0)
+    {
+        new.type = TOKEN_IN;
     }
     else
     {
