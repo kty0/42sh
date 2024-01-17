@@ -6,6 +6,14 @@
 
 #include "token.h"
 
+static struct token tokens[] = {
+    { TOKEN_IF, "if" },       { TOKEN_THEN, "then" }, { TOKEN_ELIF, "elif" },
+    { TOKEN_ELSE, "else" },   { TOKEN_FI, "fi" },     { TOKEN_SEMICOLON, ";" },
+    { TOKEN_ERROR, "Error" }, { TOKEN_NOT, "!" },     { TOKEN_PIPE, "|" },
+    { TOKEN_WHILE, "while" }, { TOKEN_DO, "do" },     { TOKEN_DONE, "done" },
+    { TOKEN_UNTIL, "until" }, { TOKEN_FOR, "for" },   { TOKEN_IN, "in" }
+};
+
 struct lexer *lexer_new(char *input)
 {
     struct lexer *l = malloc(sizeof(struct lexer));
@@ -188,7 +196,7 @@ static struct token parse_input_for_tok(struct lexer *lexer)
     lexer_skip_whitespace(lexer);
     lexer_skip_comments(lexer);
     char *string = get_string(lexer);
-    int to_free = 1;
+    int is_word = 1;
     new.value = NULL;
     if (string == NULL)
     {
@@ -198,74 +206,27 @@ static struct token parse_input_for_tok(struct lexer *lexer)
     {
         new.type = TOKEN_NEWLINE;
     }
-    else if (strcmp(string, "Error") == 0)
-    {
-        new.type = TOKEN_ERROR;
-    }
-    else if (strcmp(string, "if") == 0)
-    {
-        new.type = TOKEN_IF;
-    }
-    else if (strcmp(string, "then") == 0)
-    {
-        new.type = TOKEN_THEN;
-    }
-    else if (strcmp(string, "elif") == 0)
-    {
-        new.type = TOKEN_ELIF;
-    }
-    else if (strcmp(string, "else") == 0)
-    {
-        new.type = TOKEN_ELSE;
-    }
-    else if (strcmp(string, "fi") == 0)
-    {
-        new.type = TOKEN_FI;
-    }
-    else if (strcmp(string, ";") == 0)
-    {
-        new.type = TOKEN_SEMICOLON;
-    }
-    else if (strcmp(string, "|") == 0)
-    {
-        new.type = TOKEN_PIPE;
-    }
-    else if (strcmp(string, "!") == 0)
-    {
-        new.type = TOKEN_NOT;
-    }
-    else if (strcmp(string, "while") == 0)
-    {
-        new.type = TOKEN_WHILE;
-    }
-    else if (strcmp(string, "done") == 0)
-    {
-        new.type = TOKEN_DONE;
-    }
-    else if (strcmp(string, "do") == 0)
-    {
-        new.type = TOKEN_DO;
-    }
-    else if (strcmp(string, "until") == 0)
-    {
-        new.type = TOKEN_UNTIL;
-    }
-    else if (strcmp(string, "for") == 0)
-    {
-        new.type = TOKEN_FOR;
-    }
-    else if (strcmp(string, "in") == 0)
-    {
-        new.type = TOKEN_IN;
-    }
     else
     {
-        new.type = TOKEN_WORD;
-        new.value = string;
-        to_free = 0;
+        for (size_t i = 0; i < sizeof(tokens) / sizeof(struct token); i++)
+        {
+            if (!strcmp(string, tokens[i].value))
+            {
+                new.type = tokens[i].type;
+                is_word = 0;
+                break;
+            }
+        }
+        if (is_word)
+        {
+            new.type = TOKEN_WORD;
+            new.value = string;
+        }
     }
-    if (to_free)
+    if (!is_word)
+    {
         free(string);
+    }
     return new;
 }
 
