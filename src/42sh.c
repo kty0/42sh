@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
             errx(1, "usage: ./42sh [OPTIONS] [SCRIPT] [ARGUMENTS...]");
         }
     }
-    else
+    else if (argc == 2)
     {
         char *input = get_input(SCRIPT, argv[1]);
         if (input == NULL)
@@ -61,7 +61,21 @@ int main(int argc, char *argv[])
         }
         return result;
     }
+    else
+    {
+        char *input = get_input(STDIN, NULL);
+        if (input == NULL)
+        {
+            return 1;
+        }
 
+        int result = eval_input(input, STDIN);
+        if (result == -1)
+        {
+            errx(1, "syntax error");
+        }
+        return result;
+    }
     return 1;
 }
 
