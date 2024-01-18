@@ -1,8 +1,8 @@
 #include <criterion/criterion.h>
 #include <criterion/redirect.h>
 
-#include "../../src/lexer/lexer.h"
-#include "../../src/lexer/token.h"
+#include "../src/lexer/lexer.h"
+#include "../src/lexer/token.h"
 
 Test(lexer_new, null, .init = cr_redirect_stdout)
 {
