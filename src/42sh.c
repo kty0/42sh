@@ -1,3 +1,5 @@
+#define _POSIX_C_SOURCE 200809L
+
 #include <err.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -10,64 +12,16 @@
 #include "parser/parser.h"
 #include "quarantedeuxsh.h"
 
-static char *get_input(enum source source, char *file);
-static int eval_input(char *input, enum source source);
-
-int main(int argc, char *argv[])
+/**
+ *  \brief  From a given source, loops between parsing an expr and evaluating it
+ *  \fn     static int parse_eval(FILE *stream, enum source source);
+ *  \param  stream The file descriptor of the source
+ *  \param  source The source of the stream
+ *  \return The return value of the last evaluation
+ */
+static int parse_eval(FILE *stream, enum source source)
 {
-    if (argc == 1)
-    {
-        char *input = get_input(STDIN, NULL);
-        if (input == NULL)
-        {
-            return 1;
-        }
-        int result = eval_input(input, STDIN);
-        if (result == -1)
-        {
-            errx(1, "syntax error");
-        }
-        return result;
-    }
-
-    if (argv[1][0] == '-')
-    {
-        if (strcmp(argv[1], "-c") == 0)
-        {
-            int result = eval_input(argv[2], ARGV);
-            if (result == -1)
-            {
-                errx(1, "syntax error");
-            }
-            return result;
-        }
-        else
-        {
-            errx(1, "usage: ./42sh [OPTIONS] [SCRIPT] [ARGUMENTS...]");
-        }
-    }
-    else
-    {
-        char *input = get_input(SCRIPT, argv[1]);
-        if (input == NULL)
-        {
-            return 1;
-        }
-
-        int result = eval_input(input, SCRIPT);
-        if (result == -1)
-        {
-            errx(1, "syntax error");
-        }
-        return result;
-    }
-
-    return 1;
-}
-
-static int eval_input(char *input, enum source source)
-{
-    struct lexer *lexer = lexer_new(input);
+    struct lexer *lexer = lexer_new(stream);
     struct ast *ast;
 
     struct token tok = lexer_peek_free(lexer);
@@ -94,53 +48,69 @@ static int eval_input(char *input, enum source source)
         tok = lexer_peek_free(lexer);
     }
 
-    if (source != ARGV)
+    if (source != STDIN)
     {
-        free(input);
+        close(stream);
     }
     lexer_free(lexer);
 
     return res;
 }
 
-static char *get_input(enum source source, char *file)
+int main(int argc, char *argv[])
 {
-    FILE *fd = source == SCRIPT ? fopen(file, "r") : stdin;
-    if (fd == NULL)
+    /* case when no argument is given: reading from stdin */
+
+    if (argc == 1)
     {
-        return NULL;
-    }
-
-    char *input = calloc(BUFFER_SIZE, sizeof(char));
-    if (input == NULL)
-    {
-        fclose(fd);
-
-        return NULL;
-    }
-
-    int iter = 0;
-
-    while (fread(input + iter * BUFFER_SIZE, sizeof(char), BUFFER_SIZE, fd)
-           == BUFFER_SIZE)
-    {
-        char *temp = realloc(input, BUFFER_SIZE * (++iter + 1));
-        if (temp == NULL)
+        int result = parse_eval(stdin, STDIN);
+        if (result == -1)
         {
-            free(input);
-            fclose(fd);
-
-            return NULL;
+            errx(1, "syntax error detected in parsing");
         }
-        input = temp;
 
-        for (int i = BUFFER_SIZE * iter; i < BUFFER_SIZE * (iter + 1); i++)
+        return result;
+    }
+
+    /* case when an argument is given: tests for -c and reads from string */
+
+    if (argv[1][0] == '-')
+    {
+        if (strcmp(argv[1], "-c") == 0)
         {
-            input[i] = 0;
+            FILE *stream = fmemopen(NULL, strlen(argv[2]), "r");
+            if (stream == NULL)
+            {
+                errx(1, "failed to read from arguments");
+            }
+
+            int result = parse_eval(stream, ARGV);
+            if (result == -1)
+            {
+                errx(1, "syntax error detected in parsing");
+            }
+
+            return result;
+        }
+        else
+        {
+            errx(1, "usage: ./42sh [OPTIONS] [SCRIPT] [ARGUMENTS...]");
         }
     }
 
-    fclose(fd);
+    /* else reads from the first argument treated as a file */
 
-    return input;
+    FILE *stream = fopen(argv[1], "r");
+    if (stream == NULL)
+    {
+        errx(1, "failed to open the script file");
+    }
+
+    int result = parse_eval(stream, SCRIPT);
+    if (result == -1)
+    {
+        errx(1, "syntax error detected in parsing");
+    }
+
+    return result;
 }
