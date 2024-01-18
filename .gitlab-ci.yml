@@ -17,11 +17,20 @@ clang-format:
 
 build-job:
   stage: build
+  image: ubuntu:22.04
   before_script:
-    - |
-      apk update
-      apk add build-base make tree automake autoconf pkgconfig
+    - apt-get update -y && apt-get install -y libcriterion-dev build-essential make tree automake autoconf
   script:
     - autoreconf --install
     - ./configure
     - make
+
+test-job:
+  stage: test
+  image: ubuntu:22.04
+  before_script:
+    - apt-get update -y && apt-get install -y libcriterion-dev build-essential autotools-dev automake autoconf
+  script:
+    - autoreconf --install
+    - ./configure
+    - make check
