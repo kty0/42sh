@@ -5,6 +5,7 @@
 #include <stdlib.h>
 
 #include "../ast/ast.h"
+#include "../ast/ast_new.h"
 #include "../lexer/lexer.h"
 
 static enum parser_status parse_element(struct ast **res, struct lexer *lexer);
@@ -66,7 +67,7 @@ static enum parser_status parse_list(struct ast **res, struct lexer *lexer)
     if (parse_and_or(res, lexer) == P_OK)
     {
         struct ast *list = ast_new(AST_LIST);
-        ast_push_child(list, *res);
+        ast_list_push(list, *res);
 
         struct token tok = lexer_peek_free(lexer);
 
@@ -79,7 +80,7 @@ static enum parser_status parse_list(struct ast **res, struct lexer *lexer)
                 break;
             }
 
-            ast_push_child(list, *res);
+            ast_list_push(list, *res);
 
             tok = lexer_peek(lexer);
         }
@@ -114,7 +115,9 @@ static enum parser_status parse_pipeline(struct ast **res, struct lexer *lexer)
             return P_KO;
         }
 
-        ast_push_child(node_not, *res);
+        struct ast_not *ast_not = &node_not->data.ast_not;
+
+        ast_not->child = *res;
 
         *res = node_not;
 
@@ -157,7 +160,9 @@ static enum parser_status parse_rule_if(struct ast **res, struct lexer *lexer)
         return P_KO;
     }
 
-    ast_push_child(node_if, *res);
+    struct ast_if *ast_if = &node_if->data.ast_if;
+
+    ast_if->condition = *res;
 
     tok = lexer_peek_free(lexer);
 
@@ -175,7 +180,7 @@ static enum parser_status parse_rule_if(struct ast **res, struct lexer *lexer)
         return P_KO;
     }
 
-    ast_push_child(node_if, *res);
+    ast_if->then_body = *res;
 
     tok = lexer_peek_free(lexer);
 
@@ -223,7 +228,8 @@ static enum parser_status parse_compound_list(struct ast **res,
     if (parse_and_or(res, lexer) == P_OK)
     {
         struct ast *list = ast_new(AST_LIST);
-        ast_push_child(list, *res);
+
+        ast_list_push(list, *res);
 
         struct token tok = lexer_peek_free(lexer);
 
@@ -245,7 +251,7 @@ static enum parser_status parse_compound_list(struct ast **res,
                 break;
             }
 
-            ast_push_child(list, *res);
+            ast_list_push(list, *res);
 
             tok = lexer_peek_free(lexer);
         }
@@ -280,7 +286,10 @@ static enum parser_status parse_else_clause(struct ast **res,
 
         if (parse_compound_list(res, lexer) == P_OK)
         {
-            ast_push_child(node_if, *res);
+            struct ast_if *ast_if = &node_if->data.ast_if;
+
+            ast_if->else_body = *res;
+
             return P_OK;
         }
         else
@@ -297,7 +306,15 @@ static enum parser_status parse_else_clause(struct ast **res,
             return P_KO;
         }
 
-        ast_push_child(node_if, *res);
+        struct ast *ast = ast_new(AST_IF);
+
+        struct ast_if *prev_if = &node_if->data.ast_if;
+
+        prev_if->else_body = ast;
+
+        struct ast_if *ast_if = &ast->data.ast_if;
+
+        ast_if->condition = *res;
 
         tok = lexer_peek_free(lexer);
 
@@ -313,13 +330,13 @@ static enum parser_status parse_else_clause(struct ast **res,
             return P_KO;
         }
 
-        ast_push_child(node_if, *res);
+        ast_if->then_body = *res;
 
         tok = lexer_peek_free(lexer);
 
         if (tok.type == TOKEN_ELSE || tok.type == TOKEN_ELIF)
         {
-            *res = node_if;
+            *res = ast;
 
             if (parse_else_clause(res, lexer) != P_OK)
             {
@@ -344,7 +361,7 @@ static enum parser_status parse_simple_command(struct ast **res,
 
         struct ast *node = ast_new(AST_COMMAND);
 
-        if (ast_push_arg(node, tok.value))
+        if (ast_cmd_push(node, tok.value))
         {
             ast_free(node);
             return P_KO;
@@ -371,7 +388,7 @@ static enum parser_status parse_element(struct ast **res, struct lexer *lexer)
     {
         tok = lexer_pop(lexer);
 
-        ast_push_arg(*res, tok.value);
+        ast_cmd_push(*res, tok.value);
 
         return P_OK;
     }

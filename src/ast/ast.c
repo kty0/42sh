@@ -5,91 +5,97 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct ast *ast_new(enum ast_type type)
+int ast_cmd_push(struct ast *ast, char *arg)
 {
-    struct ast *new = calloc(1, sizeof(struct ast));
-    if (!new)
-    {
-        return NULL;
-    }
+    struct ast_cmd *ast_cmd = &ast->data.ast_cmd;
 
-    new->type = type;
-    new->args = calloc(1, sizeof(char *));
-    new->children = calloc(1, sizeof(struct ast *));
-
-    return new;
-}
-
-void ast_free(struct ast *ast)
-{
-    if (ast == NULL)
-    {
-        return;
-    }
-
-    if (ast->children != NULL)
-    {
-        for (int i = 0; ast->children[i] != NULL; i++)
-        {
-            ast_free(ast->children[i]);
-        }
-    }
-
-    if (ast->args != NULL)
-    {
-        for (int i = 0; ast->args[i] != NULL; i++)
-        {
-            free(ast->args[i]);
-        }
-    }
-
-    free(ast->children);
-    free(ast->args);
-    free(ast);
-}
-
-int ast_push_arg(struct ast *ast, char *arg)
-{
     size_t len = 0;
-    while (ast->args[len] != NULL)
+    while (ast_cmd->args[len] != NULL)
     {
         len++;
     }
     len++;
 
-    char **tmp = realloc(ast->args, sizeof(char *) * (len + 1));
+    char **tmp = realloc(ast_cmd->args, sizeof(char *) * (len + 1));
     if (tmp == NULL)
     {
         return 1;
     }
-    ast->args = tmp;
+    ast_cmd->args = tmp;
 
-    ast->args[len - 1] = arg;
-    ast->args[len] = NULL;
+    ast_cmd->args[len - 1] = arg;
+    ast_cmd->args[len] = NULL;
 
     return 0;
 }
 
-int ast_push_child(struct ast *ast, struct ast *child)
+int ast_list_push(struct ast *ast, struct ast *child)
 {
+    struct ast_list *ast_list = &ast->data.ast_list;
+
     size_t len = 0;
-    while (ast->children[len] != NULL)
+    while (ast_list->children[len] != NULL)
     {
         len++;
     }
     len++;
 
-    struct ast **tmp = realloc(ast->children, sizeof(struct ast *) * (len + 1));
+    struct ast **tmp =
+        realloc(ast_list->children, sizeof(struct ast *) * (len + 1));
     if (tmp == NULL)
     {
         return 1;
     }
-    ast->children = tmp;
+    ast_list->children = tmp;
 
-    ast->children[len - 1] = child;
-    ast->children[len] = NULL;
+    ast_list->children[len - 1] = child;
+    ast_list->children[len] = NULL;
 
     return 0;
+}
+
+static void print_if(struct ast *ast)
+{
+    struct ast_if *ast_if = &ast->data.ast_if;
+
+    printf("if { ");
+    ast_print(ast_if->condition);
+    printf("} ");
+
+    printf("then {");
+    ast_print(ast_if->then_body);
+    printf("} ");
+
+    if (ast_if->else_body != NULL)
+    {
+        printf("else {");
+        ast_print(ast_if->else_body);
+        printf("} ");
+    }
+
+    printf("fi ");
+}
+
+static void print_command(struct ast *ast)
+{
+    struct ast_cmd *ast_cmd = &ast->data.ast_cmd;
+
+    printf("command ");
+
+    for (int i = 0; ast_cmd->args[i] != NULL; i++)
+    {
+        printf("%s ", ast_cmd->args[i]);
+    }
+}
+
+static void print_list(struct ast *ast)
+{
+    struct ast_list *ast_list = &ast->data.ast_list;
+
+    for (int i = 0; ast_list->children[i] != NULL; i++)
+    {
+        ast_print(ast_list->children[i]);
+    }
 }
 
 void ast_print(struct ast *ast)
@@ -107,52 +113,5 @@ void ast_print(struct ast *ast)
         break;
     default:
         break;
-    }
-}
-
-void print_list(struct ast *ast)
-{
-    assert(ast->type == AST_LIST);
-    for (int i = 0; ast->children[i] != NULL; i++)
-    {
-        ast_print(ast->children[i]);
-    }
-}
-
-void print_if(struct ast *ast)
-{
-    assert(ast->type == AST_IF);
-    printf("if { ");
-    ast_print(ast->children[0]);
-    printf("}; then {");
-    ast_print(ast->children[1]);
-    printf("}");
-    int i = 2;
-    for (; ast->children[i] != NULL && ast->children[i + 1] != NULL; i += 2)
-    {
-        printf("elif {");
-        ast_print(ast->children[i]);
-        printf("}; then {");
-        ast_print(ast->children[i + 1]);
-        printf("}");
-    }
-    if (ast->children[i] != NULL)
-    {
-        printf("else {");
-        ast_print(ast->children[i]);
-        printf("}");
-    }
-    printf("fi \n");
-}
-
-void print_command(struct ast *ast)
-{
-    assert(ast->type == AST_COMMAND);
-    printf(" command ");
-    int i = 0;
-    while (ast->args[i] != NULL)
-    {
-        printf("%s ", ast->args[i]);
-        i++;
     }
 }
