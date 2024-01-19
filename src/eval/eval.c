@@ -13,10 +13,76 @@
 #include "../built_in/echo.h"
 #include "../built_in/true_false.h"
 
-static int eval_if(struct ast *ast);
-static int eval_cmd(struct ast *ast);
-static int eval_list(struct ast *ast);
-static int eval_not(struct ast *ast);
+static int eval_if(struct ast *ast)
+{
+    struct ast_if *ast_if = &ast->data.ast_if;
+
+    if (eval(ast_if->condition) == 0)
+    {
+        return eval(ast_if->then_body);
+    }
+
+    return eval(ast_if->else_body);
+}
+
+static int eval_cmd(struct ast *ast)
+{
+    struct ast_cmd *ast_cmd = &ast->data.ast_cmd;
+
+    if (strcmp(ast_cmd->args[0], "echo") == 0)
+    {
+        int res = echo(ast_cmd->args);
+        fflush(stdout);
+        return res;
+    }
+    else if (strcmp(ast_cmd->args[0], "true") == 0)
+    {
+        return my_true();
+    }
+    else if (strcmp(ast_cmd->args[0], "false") == 0)
+    {
+        return my_false();
+    }
+    else
+    {
+        int pid = fork();
+        if (pid == -1)
+        {
+            return 1;
+        }
+
+        if (pid == 0)
+        {
+            errx(execvp(ast_cmd->args[0], ast_cmd->args), "missing command");
+        }
+
+        int wstatus;
+        waitpid(pid, &wstatus, 0);
+
+        return WEXITSTATUS(wstatus);
+    }
+}
+
+static int eval_list(struct ast *ast)
+{
+    struct ast_list *ast_list = &ast->data.ast_list;
+
+    int res = 0;
+
+    for (int i = 0; ast_list->children[i] != NULL; i++)
+    {
+        res = eval(ast_list->children[i]);
+    }
+
+    return res;
+}
+
+static int eval_not(struct ast *ast)
+{
+    struct ast_not *ast_not = &ast->data.ast_not;
+
+    return !eval(ast_not->child);
+}
 
 int eval(struct ast *ast)
 {
@@ -41,77 +107,6 @@ int eval(struct ast *ast)
     {
         return eval_list(ast);
     }
-}
 
-static int eval_if(struct ast *ast)
-{
-    size_t i = 0;
-
-    for (; ast->children[i] != NULL && ast->children[i + 1] != NULL; i += 2)
-    {
-        if (eval(ast->children[i]) == 0)
-        {
-            return eval(ast->children[i + 1]);
-        }
-    }
-
-    if (ast->children[i] == NULL)
-    {
-        return 0;
-    }
-
-    return eval(ast->children[i]);
-}
-
-static int eval_cmd(struct ast *ast)
-{
-    if (strcmp(ast->args[0], "echo") == 0)
-    {
-        int res = echo(ast->args);
-        fflush(stdout);
-        return res;
-    }
-    else if (strcmp(ast->args[0], "true") == 0)
-    {
-        return my_true();
-    }
-    else if (strcmp(ast->args[0], "false") == 0)
-    {
-        return my_false();
-    }
-    else
-    {
-        int pid = fork();
-        if (pid == -1)
-        {
-            return 1;
-        }
-
-        if (pid == 0)
-        {
-            errx(execvp(ast->args[0], ast->args), "missing command");
-        }
-
-        int wstatus;
-        waitpid(pid, &wstatus, 0);
-
-        return WEXITSTATUS(wstatus);
-    }
-}
-
-static int eval_list(struct ast *ast)
-{
-    int res = 0;
-
-    for (int i = 0; ast->children[i] != NULL; i++)
-    {
-        res = eval(ast->children[i]);
-    }
-
-    return res;
-}
-
-static int eval_not(struct ast *ast)
-{
-    return !eval(ast->children[0]);
+    err(1, "invalid node in the AST");
 }
