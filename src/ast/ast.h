@@ -10,6 +10,13 @@ enum ast_type
     AST_PIPE,
     AST_WHILE,
     AST_UNTIL,
+    AST_OPERATOR,
+};
+
+enum ope_type
+{
+    AND,
+    OR
 };
 
 /* definition of the ast nodes */
@@ -54,6 +61,13 @@ struct ast_until
     struct ast *body;
 };
 
+struct ast_ope
+{
+    enum ope_type type;
+    struct ast *left;
+    struct ast *right;
+};
+
 /* a few very nice base structs */
 
 union ast_union
@@ -65,6 +79,7 @@ union ast_union
     struct ast_pipe ast_pipe;
     struct ast_while ast_while;
     struct ast_until ast_until;
+    struct ast_ope ast_ope;
 };
 
 struct ast

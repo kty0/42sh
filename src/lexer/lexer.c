@@ -11,7 +11,8 @@ static struct token tokens[] = {
     { TOKEN_ELSE, "else" },   { TOKEN_FI, "fi" },     { TOKEN_SEMICOLON, ";" },
     { TOKEN_ERROR, "Error" }, { TOKEN_NOT, "!" },     { TOKEN_PIPE, "|" },
     { TOKEN_WHILE, "while" }, { TOKEN_DO, "do" },     { TOKEN_DONE, "done" },
-    { TOKEN_UNTIL, "until" }, { TOKEN_FOR, "for" },   { TOKEN_IN, "in" }
+    { TOKEN_UNTIL, "until" }, { TOKEN_FOR, "for" },   { TOKEN_IN, "in" },
+    { TOKEN_AND, "&&" },      { TOKEN_OR, "||" }
 };
 
 struct lexer *lexer_new(char *input)

@@ -22,7 +22,9 @@ enum token_type
     TOKEN_DONE, // done
     TOKEN_UNTIL, // until
     TOKEN_FOR, // for
-    TOKEN_IN // in
+    TOKEN_IN, // in
+    TOKEN_AND, // and
+    TOKEN_OR, // or
 };
 
 struct token

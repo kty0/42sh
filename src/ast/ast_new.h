@@ -19,4 +19,6 @@ struct ast *ast_new_while(void);
 
 struct ast *ast_new_until(void);
 
+struct ast *ast_new_ope(void);
+
 #endif /* !AST_NEW_H */

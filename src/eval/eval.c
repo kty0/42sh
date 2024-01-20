@@ -169,6 +169,27 @@ static int eval_until(struct ast *ast)
     return res;
 }
 
+static int eval_ope(struct ast *ast)
+{
+    struct ast_ope *ast_ope = &ast->data.ast_ope;
+
+    int res = eval(ast_ope->left);
+
+    if (ast_ope->right != NULL)
+    {
+        if (ast_ope->type == AND)
+        {
+            return !res && !eval(ast_ope->right) ? 0 : 1;
+        }
+        else
+        {
+            return !res || !eval(ast_ope->right) ? 0 : 1;
+        }
+    }
+
+    return res;
+}
+
 int eval(struct ast *ast)
 {
     if (ast == NULL)
@@ -203,6 +224,10 @@ int eval(struct ast *ast)
     else if (ast->type == AST_UNTIL)
     {
         return eval_until(ast);
+    }
+    else if (ast->type == AST_OPERATOR)
+    {
+        return eval_ope(ast);
     }
 
     err(1, "invalid node in the AST");
