@@ -15,4 +15,8 @@ struct ast *ast_new_not(void);
 
 struct ast *ast_new_pipe(void);
 
+struct ast *ast_new_while(void);
+
+struct ast *ast_new_until(void);
+
 #endif /* !AST_NEW_H */

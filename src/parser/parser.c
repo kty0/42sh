@@ -22,6 +22,10 @@ static enum parser_status parse_command(struct ast **res, struct lexer *lexer);
 static enum parser_status parse_pipeline(struct ast **res, struct lexer *lexer);
 static enum parser_status parse_and_or(struct ast **res, struct lexer *lexer);
 static enum parser_status parse_list(struct ast **res, struct lexer *lexer);
+static enum parser_status parse_rule_while(struct ast **res,
+                                           struct lexer *lexer);
+static enum parser_status parse_rule_until(struct ast **res,
+                                           struct lexer *lexer);
 
 enum parser_status parse(struct ast **res, struct lexer *lexer)
 {
@@ -191,7 +195,11 @@ static enum parser_status parse_command(struct ast **res, struct lexer *lexer)
 static enum parser_status parse_shell_command(struct ast **res,
                                               struct lexer *lexer)
 {
-    return parse_rule_if(res, lexer);
+    return parse_rule_if(res, lexer) == P_OK
+            || parse_rule_while(res, lexer) == P_OK
+            || parse_rule_until(res, lexer) == P_OK
+        ? P_OK
+        : P_KO;
 }
 
 static enum parser_status parse_rule_if(struct ast **res, struct lexer *lexer)
@@ -262,6 +270,115 @@ static enum parser_status parse_rule_if(struct ast **res, struct lexer *lexer)
     lexer_pop_free(lexer);
 
     *res = node_if;
+
+    return P_OK;
+}
+
+static enum parser_status parse_rule_while(struct ast **res,
+                                           struct lexer *lexer)
+{
+    struct token tok = lexer_peek_free(lexer);
+
+    if (tok.type != TOKEN_WHILE)
+    {
+        return P_KO;
+    }
+
+    tok = lexer_pop_free(lexer);
+
+    if (parse_compound_list(res, lexer) != P_OK)
+    {
+        return P_KO;
+    }
+
+    struct ast *ast = ast_new(AST_WHILE);
+
+    struct ast_while *ast_while = &ast->data.ast_while;
+
+    ast_while->condition = *res;
+
+    tok = lexer_peek_free(lexer);
+
+    if (tok.type != TOKEN_DO)
+    {
+        return P_KO;
+    }
+
+    tok = lexer_pop_free(lexer);
+
+    if (parse_compound_list(res, lexer) != P_OK)
+    {
+        return P_KO;
+    }
+
+    ast_while->body = *res;
+
+    tok = lexer_peek_free(lexer);
+
+    if (tok.type != TOKEN_DONE)
+    {
+        return P_KO;
+    }
+
+    tok = lexer_pop_free(lexer);
+
+    *res = ast;
+
+    return P_OK;
+}
+
+static enum parser_status parse_rule_until(struct ast **res,
+                                           struct lexer *lexer)
+{
+    struct token tok = lexer_peek_free(lexer);
+
+    if (tok.type != TOKEN_UNTIL)
+    {
+        return P_KO;
+    }
+
+    tok = lexer_pop_free(lexer);
+
+    if (parse_compound_list(res, lexer) != P_OK)
+    {
+        return P_KO;
+    }
+
+    struct ast *ast = ast_new(AST_UNTIL);
+
+    struct ast_until *ast_until = &ast->data.ast_until;
+
+    ast_until->condition = *res;
+
+    tok = lexer_peek_free(lexer);
+
+    if (tok.type != TOKEN_DO)
+    {
+        ast_free(ast);
+        return P_KO;
+    }
+
+    tok = lexer_pop_free(lexer);
+
+    if (parse_compound_list(res, lexer) != P_OK)
+    {
+        ast_free(ast);
+        return P_KO;
+    }
+
+    ast_until->body = *res;
+
+    tok = lexer_peek_free(lexer);
+
+    if (tok.type != TOKEN_DONE)
+    {
+        ast_free(ast);
+        return P_KO;
+    }
+
+    tok = lexer_pop_free(lexer);
+
+    *res = ast;
 
     return P_OK;
 }

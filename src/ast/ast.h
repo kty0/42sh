@@ -8,6 +8,8 @@ enum ast_type
     AST_IF,
     AST_NOT,
     AST_PIPE,
+    AST_WHILE,
+    AST_UNTIL,
 };
 
 /* definition of the ast nodes */
@@ -40,6 +42,18 @@ struct ast_pipe
     struct ast *child;
 };
 
+struct ast_while
+{
+    struct ast *condition;
+    struct ast *body;
+};
+
+struct ast_until
+{
+    struct ast *condition;
+    struct ast *body;
+};
+
 /* a few very nice base structs */
 
 union ast_union
@@ -49,6 +63,8 @@ union ast_union
     struct ast_if ast_if;
     struct ast_not ast_not;
     struct ast_pipe ast_pipe;
+    struct ast_while ast_while;
+    struct ast_until ast_until;
 };
 
 struct ast
