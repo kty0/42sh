@@ -29,7 +29,7 @@ testcase_as_arg()
     else
         echo -e "${GREEN}[UwU]${NC} $1"
     fi
-    echo "  ________________________________________________________________\n"
+    echo "  ________________________________________________________________"
 }
 
 testcase_as_script()
@@ -45,7 +45,7 @@ testcase_as_script()
     else
         echo -e "${GREEN}[UwU]${NC} $1"
     fi
-    echo "  ________________________________________________________________\n"
+    echo "  ________________________________________________________________"
 }
 
 testcase_as_stdin_pipe()
@@ -61,7 +61,7 @@ testcase_as_stdin_pipe()
     else
         echo -e "${GREEN}[UwU]${NC} $1"
     fi
-    echo "  ________________________________________________________________\n"
+    echo "  ________________________________________________________________"
 
 }
 
@@ -78,10 +78,10 @@ testcase_as_stdin_redir()
     else
         echo -e "${GREEN}[UwU]${NC} $1"
     fi
-    echo "  ________________________________________________________________\n"
+    echo "  ________________________________________________________________"
 }
 
-echo ">.>____________________________ARGS________________________________<.<\n"
+echo ">.>____________________________ARGS________________________________<.<"
 #tests for args " -c"
 for file in "$dir_arguments"/*.txt; do
     testcase_as_arg "$(cat $file)"
@@ -90,7 +90,7 @@ done
 testcase_as_arg "echo toto"
 testcase_as_arg "ls"
 
-echo ">.>__________________________SCRIPTS_______________________________<.<\n"
+echo ">.>__________________________SCRIPTS_______________________________<.<"
 #tests for scripts
 for file in "$dir_scripts"/*; do
     testcase_as_script "$file"
@@ -98,7 +98,7 @@ done
 
 #testcase_as_script "scripts/hello.sh"
 
-echo ">.>___________________________STDIN________________________________<.<\n"
+echo ">.>___________________________STDIN________________________________<.<"
 #tests for stdin 
 for file in "$dir_scripts"/*; do
     testcase_as_stdin_redir "$file"

@@ -73,7 +73,7 @@ void concat_quoted_str(char **str, char *str_sub, int *len_tot)
 {
     size_t len_sub = strlen(str_sub) + 1;
     *str = realloc(*str, *len_tot + len_sub);
-    strncpy(*str + *len_tot, str_sub, len_sub);
+    strcpy(*str + *len_tot, str_sub);
     len_sub--;
     *len_tot += len_sub;
 }
