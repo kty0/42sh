@@ -57,6 +57,16 @@ static void ast_free_not(struct ast *ast)
     free(ast);
 }
 
+static void ast_free_pipe(struct ast *ast)
+{
+    struct ast_pipe *ast_pipe = &ast->data.ast_pipe;
+
+    ast_free(ast_pipe->command);
+    ast_free(ast_pipe->child);
+
+    free(ast);
+}
+
 void ast_free(struct ast *ast)
 {
     if (ast == NULL)
@@ -77,6 +87,9 @@ void ast_free(struct ast *ast)
         break;
     case AST_NOT:
         ast_free_not(ast);
+        break;
+    case AST_PIPE:
+        ast_free_pipe(ast);
         break;
     default:
         errx(1, "failed to free the AST");
