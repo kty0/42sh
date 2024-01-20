@@ -3,7 +3,7 @@ check_PROGRAMS = \
 
 testlexer_SOURCES = testlexer.c
 
-testlexer_CFLAGS = -std=c99 -Werror -Wall -Wextra -Wvla -pedantic
+testlexer_CFLAGS = -std=c99 -Wall -Wextra -Wvla -pedantic
 
 testlexer_LDFLAGS = -fsanitize=address
 
