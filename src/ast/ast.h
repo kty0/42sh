@@ -48,6 +48,7 @@ union ast_union
     struct ast_list ast_list;
     struct ast_if ast_if;
     struct ast_not ast_not;
+    struct ast_pipe ast_pipe;
 };
 
 struct ast

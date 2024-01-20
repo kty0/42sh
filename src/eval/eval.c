@@ -84,6 +84,63 @@ static int eval_not(struct ast *ast)
     return !eval(ast_not->child);
 }
 
+static int exec_fork(struct ast *ast, int fds[2], enum side s)
+{
+    if (ast == NULL)
+    {
+        exit(0);
+    }
+
+    pid_t pid = fork();
+    if (pid != 0)
+    {
+        return pid;
+    }
+
+    int fdrep = s == LEFT ? STDOUT_FILENO : STDIN_FILENO;
+    int fdpipe = s == LEFT ? fds[1] : fds[0];
+
+    if (dup2(fdpipe, fdrep) == -1)
+    {
+        errx(1, "dup2 failed in while piping");
+    }
+
+    close(fds[0]);
+    close(fds[1]);
+
+    int res = eval(ast);
+
+    exit(res);
+}
+
+static int eval_pipe(struct ast *ast)
+{
+    struct ast_pipe *ast_pipe = &ast->data.ast_pipe;
+
+    if (ast_pipe->child == NULL)
+    {
+        return eval(ast_pipe->command);
+    }
+
+    int fds[2];
+    if (pipe(fds) == -1)
+    {
+        errx(1, "failed to create the pipe");
+    }
+
+    int pid_left = exec_fork(ast_pipe->command, fds, LEFT);
+    int pid_right = exec_fork(ast_pipe->child, fds, RIGHT);
+
+    close(fds[0]);
+    close(fds[1]);
+
+    int wstatus;
+    waitpid(pid_left, &wstatus, 0);
+    waitpid(pid_right, &wstatus, 0);
+
+    return WEXITSTATUS(wstatus);
+}
+
 int eval(struct ast *ast)
 {
     if (ast == NULL)
@@ -103,9 +160,13 @@ int eval(struct ast *ast)
     {
         return eval_not(ast);
     }
-    else
+    else if (ast->type == AST_LIST)
     {
         return eval_list(ast);
+    }
+    else if (ast->type == AST_PIPE)
+    {
+        return eval_pipe(ast);
     }
 
     err(1, "invalid node in the AST");

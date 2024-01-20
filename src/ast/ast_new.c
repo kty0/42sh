@@ -19,6 +19,8 @@ struct ast *ast_new(enum ast_type type)
         return ast_new_if();
     case AST_NOT:
         return ast_new_not();
+    case AST_PIPE:
+        return ast_new_pipe();
     default:
         return NULL;
     }
@@ -88,6 +90,19 @@ struct ast *ast_new_not(void)
     }
 
     new->type = AST_NOT;
+
+    return new;
+}
+
+struct ast *ast_new_pipe(void)
+{
+    struct ast *new = calloc(1, sizeof(struct ast));
+    if (new == NULL)
+    {
+        errx(1, "failed to create a new ast");
+    }
+
+    new->type = AST_PIPE;
 
     return new;
 }

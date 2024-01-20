@@ -98,8 +98,27 @@ static void print_list(struct ast *ast)
     }
 }
 
+static void print_pipe(struct ast *ast)
+{
+    struct ast_pipe *ast_pipe = &ast->data.ast_pipe;
+
+    printf("{ ");
+    ast_print(ast_pipe->command);
+    if (ast_pipe->child != NULL)
+    {
+        printf("| ");
+        ast_print(ast_pipe->child);
+    }
+    printf("} ");
+}
+
 void ast_print(struct ast *ast)
 {
+    if (ast == NULL)
+    {
+        return;
+    }
+
     switch (ast->type)
     {
     case AST_IF:
@@ -110,6 +129,9 @@ void ast_print(struct ast *ast)
         break;
     case AST_LIST:
         print_list(ast);
+        break;
+    case AST_PIPE:
+        print_pipe(ast);
         break;
     default:
         break;

@@ -41,7 +41,7 @@ enum parser_status parse(struct ast **res, struct lexer *lexer)
     if (parse_list(res, lexer) != P_OK)
     {
         ast_free(*res);
-        fprintf(stderr, "Mmh no gud\n");
+        fprintf(stderr, "parsing failed somehow\n");
         return P_KO;
     }
 
@@ -58,7 +58,7 @@ enum parser_status parse(struct ast **res, struct lexer *lexer)
     }
 
     ast_free(*res);
-    fprintf(stderr, "Mmh no gud\n");
+    fprintf(stderr, "parsing failed somehow\n");
     return P_KO;
 }
 
@@ -102,29 +102,82 @@ static enum parser_status parse_and_or(struct ast **res, struct lexer *lexer)
 
 static enum parser_status parse_pipeline(struct ast **res, struct lexer *lexer)
 {
-    struct token tok = lexer_peek_free(lexer);
+    /* Checking if there is a TOKEN_NOT to begin with for later */
 
-    if (tok.type == TOKEN_NOT)
+    struct token tok = lexer_peek_free(lexer);
+    int is_not = tok.type == TOKEN_NOT;
+
+    if (is_not)
     {
         tok = lexer_pop_free(lexer);
+    }
 
-        struct ast *node_not = ast_new(AST_NOT);
+    if (parse_command(res, lexer) != P_OK)
+    {
+        return P_KO;
+    }
 
-        if (parse_command(res, lexer) != P_OK)
+    struct ast *node;
+
+    /* Checking if there is a pipe */
+
+    tok = lexer_peek_free(lexer);
+
+    if (tok.type != TOKEN_PIPE)
+    {
+        node = *res;
+    }
+    else
+    {
+        node = ast_new(AST_PIPE);
+
+        struct ast_pipe *ast_pipe = &node->data.ast_pipe;
+
+        ast_pipe->command = *res;
+
+        while (tok.type == TOKEN_PIPE)
         {
-            return P_KO;
+            tok = lexer_pop_free(lexer);
+
+            if (parse_command(res, lexer) != P_OK)
+            {
+                ast_free(node);
+
+                return P_KO;
+            }
+
+            struct ast *new_ast = ast_new(AST_PIPE);
+
+            struct ast_pipe *new_pipe = &new_ast->data.ast_pipe;
+
+            new_pipe->command = *res;
+
+            ast_pipe->child = new_ast;
+
+            ast_pipe = new_pipe;
+
+            tok = lexer_peek_free(lexer);
         }
+    }
+
+    /* Adding the not if there was one */
+
+    if (is_not)
+    {
+        struct ast *node_not = ast_new(AST_NOT);
 
         struct ast_not *ast_not = &node_not->data.ast_not;
 
-        ast_not->child = *res;
+        ast_not->child = node;
 
         *res = node_not;
-
-        return P_OK;
+    }
+    else
+    {
+        *res = node;
     }
 
-    return parse_command(res, lexer);
+    return P_OK;
 }
 
 static enum parser_status parse_command(struct ast **res, struct lexer *lexer)

@@ -13,4 +13,6 @@ struct ast *ast_new_list(void);
 
 struct ast *ast_new_not(void);
 
+struct ast *ast_new_pipe(void);
+
 #endif /* !AST_NEW_H */
