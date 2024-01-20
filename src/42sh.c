@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
     {
         if (strcmp(argv[1], "-c") == 0)
         {
-            FILE *stream = fmemopen(NULL, strlen(argv[2]), "r");
+            FILE *stream = fmemopen(argv[2], strlen(argv[2]), "r");
             if (stream == NULL)
             {
                 errx(1, "failed to read from arguments");
