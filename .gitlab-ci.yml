@@ -17,7 +17,7 @@ clang-format:
 
 build-job:
   stage: build
-  image: debian:latest-slim
+  image: debian:11-slim
   before_script:
     - apt-get update -y && apt-get install -y libcriterion-dev build-essential make tree automake autoconf
   script:
@@ -27,7 +27,7 @@ build-job:
 
 test-job:
   stage: test
-  image: debian:latest-slim
+  image: debian:11-slim
   before_script:
     - apt-get update -y && apt-get install -y libcriterion-dev build-essential autotools-dev automake autoconf
   script:
