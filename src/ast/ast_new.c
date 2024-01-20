@@ -114,6 +114,19 @@ struct ast *ast_new_until(void)
     return new;
 }
 
+struct ast *ast_new_ope(void)
+{
+    struct ast *new = calloc(1, sizeof(struct ast));
+    if (new == NULL)
+    {
+        errx(1, "failed to create a new ope ast");
+    }
+
+    new->type = AST_OPERATOR;
+
+    return new;
+}
+
 struct ast *ast_new(enum ast_type type)
 {
     switch (type)
@@ -132,6 +145,8 @@ struct ast *ast_new(enum ast_type type)
         return ast_new_while();
     case AST_UNTIL:
         return ast_new_until();
+    case AST_OPERATOR:
+        return ast_new_ope();
     default:
         return NULL;
     }

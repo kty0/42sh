@@ -87,6 +87,16 @@ static void ast_free_until(struct ast *ast)
     free(ast);
 }
 
+static void ast_free_ope(struct ast *ast)
+{
+    struct ast_ope *ast_ope = &ast->data.ast_ope;
+
+    ast_free(ast_ope->left);
+    ast_free(ast_ope->right);
+
+    free(ast);
+}
+
 void ast_free(struct ast *ast)
 {
     if (ast == NULL)
@@ -116,6 +126,9 @@ void ast_free(struct ast *ast)
         break;
     case AST_UNTIL:
         ast_free_until(ast);
+        break;
+    case AST_OPERATOR:
+        ast_free_ope(ast);
         break;
     default:
         errx(1, "failed to free the AST");

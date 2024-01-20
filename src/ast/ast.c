@@ -136,6 +136,27 @@ static void print_until(struct ast *ast)
     printf("done } ");
 }
 
+static void print_ope(struct ast *ast)
+{
+    struct ast_ope *ast_ope = &ast->data.ast_ope;
+
+    printf("{ ");
+    ast_print(ast_ope->left);
+    if (ast_ope->right != NULL)
+    {
+        if (ast_ope->type == AND)
+        {
+            printf("AND ");
+        }
+        else
+        {
+            printf("OR ");
+        }
+    }
+    ast_print(ast_ope->right);
+    printf("} ");
+}
+
 void ast_print(struct ast *ast)
 {
     if (ast == NULL)
@@ -162,6 +183,9 @@ void ast_print(struct ast *ast)
         break;
     case AST_UNTIL:
         print_until(ast);
+        break;
+    case AST_OPERATOR:
+        print_ope(ast);
         break;
     default:
         break;

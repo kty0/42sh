@@ -45,7 +45,7 @@ enum parser_status parse(struct ast **res, struct lexer *lexer)
     if (parse_list(res, lexer) != P_OK)
     {
         ast_free(*res);
-        fprintf(stderr, "parsing failed somehow\n");
+        fprintf(stderr, "mmh no gud, parsing failed somehow\n");
         return P_KO;
     }
 
@@ -62,7 +62,7 @@ enum parser_status parse(struct ast **res, struct lexer *lexer)
     }
 
     ast_free(*res);
-    fprintf(stderr, "parsing failed somehow\n");
+    fprintf(stderr, "mmh no gud, parsing failed somehow\n");
     return P_KO;
 }
 
@@ -101,7 +101,58 @@ static enum parser_status parse_list(struct ast **res, struct lexer *lexer)
 
 static enum parser_status parse_and_or(struct ast **res, struct lexer *lexer)
 {
-    return parse_pipeline(res, lexer);
+    /* Parsing the first pipeline */
+
+    if (parse_pipeline(res, lexer) != P_OK)
+    {
+        return P_KO;
+    }
+
+    struct ast *node;
+
+    /* Checking if there is an operator */
+
+    struct token tok = lexer_peek_free(lexer);
+
+    if (tok.type != TOKEN_AND && tok.type != TOKEN_OR)
+    {
+        return P_OK;
+    }
+
+    node = ast_new(AST_OPERATOR);
+
+    struct ast_ope *ast_ope = &node->data.ast_ope;
+
+    ast_ope->type = tok.type == TOKEN_AND ? AND : OR;
+    ast_ope->left = *res;
+
+    while (tok.type == TOKEN_AND || tok.type == TOKEN_OR)
+    {
+        tok = lexer_pop_free(lexer);
+
+        if (parse_command(res, lexer) != P_OK)
+        {
+            ast_free(node);
+
+            return P_KO;
+        }
+
+        struct ast *new_ast = ast_new(AST_OPERATOR);
+
+        struct ast_ope *new_ope = &new_ast->data.ast_ope;
+
+        new_ope->left = *res;
+
+        ast_ope->right = new_ast;
+
+        ast_ope = new_ope;
+
+        tok = lexer_peek_free(lexer);
+    }
+
+    *res = node;
+
+    return P_OK;
 }
 
 static enum parser_status parse_pipeline(struct ast **res, struct lexer *lexer)
