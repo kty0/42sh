@@ -141,6 +141,34 @@ static int eval_pipe(struct ast *ast)
     return WEXITSTATUS(wstatus);
 }
 
+static int eval_while(struct ast *ast)
+{
+    struct ast_while *ast_while = &ast->data.ast_while;
+
+    int res = 0;
+
+    while (!eval(ast_while->condition))
+    {
+        res = eval(ast_while->body);
+    }
+
+    return res;
+}
+
+static int eval_until(struct ast *ast)
+{
+    struct ast_until *ast_until = &ast->data.ast_until;
+
+    int res = 0;
+
+    while (eval(ast_until->condition))
+    {
+        res = eval(ast_until->body);
+    }
+
+    return res;
+}
+
 int eval(struct ast *ast)
 {
     if (ast == NULL)
@@ -167,6 +195,14 @@ int eval(struct ast *ast)
     else if (ast->type == AST_PIPE)
     {
         return eval_pipe(ast);
+    }
+    else if (ast->type == AST_WHILE)
+    {
+        return eval_while(ast);
+    }
+    else if (ast->type == AST_UNTIL)
+    {
+        return eval_until(ast);
     }
 
     err(1, "invalid node in the AST");

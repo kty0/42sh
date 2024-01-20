@@ -67,6 +67,26 @@ static void ast_free_pipe(struct ast *ast)
     free(ast);
 }
 
+static void ast_free_while(struct ast *ast)
+{
+    struct ast_while *ast_while = &ast->data.ast_while;
+
+    ast_free(ast_while->condition);
+    ast_free(ast_while->body);
+
+    free(ast);
+}
+
+static void ast_free_until(struct ast *ast)
+{
+    struct ast_until *ast_until = &ast->data.ast_until;
+
+    ast_free(ast_until->condition);
+    ast_free(ast_until->body);
+
+    free(ast);
+}
+
 void ast_free(struct ast *ast)
 {
     if (ast == NULL)
@@ -90,6 +110,12 @@ void ast_free(struct ast *ast)
         break;
     case AST_PIPE:
         ast_free_pipe(ast);
+        break;
+    case AST_WHILE:
+        ast_free_while(ast);
+        break;
+    case AST_UNTIL:
+        ast_free_until(ast);
         break;
     default:
         errx(1, "failed to free the AST");

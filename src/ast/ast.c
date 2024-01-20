@@ -112,6 +112,30 @@ static void print_pipe(struct ast *ast)
     printf("} ");
 }
 
+static void print_while(struct ast *ast)
+{
+    struct ast_while *ast_while = &ast->data.ast_while;
+
+    printf("while { ");
+    ast_print(ast_while->condition);
+    printf("do { ");
+    ast_print(ast_while->body);
+    printf("} ");
+    printf("done } ");
+}
+
+static void print_until(struct ast *ast)
+{
+    struct ast_until *ast_until = &ast->data.ast_until;
+
+    printf("until { ");
+    ast_print(ast_until->condition);
+    printf("do { ");
+    ast_print(ast_until->body);
+    printf("} ");
+    printf("done } ");
+}
+
 void ast_print(struct ast *ast)
 {
     if (ast == NULL)
@@ -132,6 +156,12 @@ void ast_print(struct ast *ast)
         break;
     case AST_PIPE:
         print_pipe(ast);
+        break;
+    case AST_WHILE:
+        print_while(ast);
+        break;
+    case AST_UNTIL:
+        print_until(ast);
         break;
     default:
         break;
