@@ -138,7 +138,6 @@ struct ast *ast_new_redir(void)
     new->type = AST_REDIRECTION;
 
     return new;
-
 }
 
 struct ast *ast_new_word(void)
@@ -152,7 +151,6 @@ struct ast *ast_new_word(void)
     new->type = AST_REDIRECTION;
 
     return new;
-
 }
 
 struct ast *ast_new(enum ast_type type)

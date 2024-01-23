@@ -160,13 +160,48 @@ static void print_ope(struct ast *ast)
 static void print_redir(struct ast *ast)
 {
     struct ast_redir *ast_redir = &ast->data.ast_redir;
-    printf("");
-    return;
+    printf("{ ");
+    printf("%d ", ast_redir->fd);
+    switch (ast_redir->type)
+    {
+    case LESS:
+        printf("< ");
+        break;
+    case GREAT:
+        printf("> ");
+        break;
+    case LESSAND:
+        printf("<& ");
+        break;
+    case GREATAND:
+        printf(">& ");
+        break;
+    case LESSGREAT:
+        printf("<> ");
+        break;
+    case DGREAT:
+        printf(">> ");
+        break;
+    case CLOBBER:
+        printf(">| ");
+        break;
+    default:
+        break;
+    }
+    if (ast_redir->right != NULL)
+    {
+        ast_print(ast_redir->right);
+    }
+    else
+    {
+        ast_print(ast_redir->left);
+    }
+    printf("} ");
 }
 
 void ast_print(struct ast *ast)
 {
-    if (ast == NULL)
+    if (ast == NULL)
     {
         return;
     }
