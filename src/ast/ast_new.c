@@ -138,19 +138,7 @@ struct ast *ast_new_redir(void)
     new->type = AST_REDIRECTION;
 
     return new;
-}
 
-struct ast *ast_new_word(void)
-{
-    struct ast *new = calloc(1, sizeof(struct ast));
-    if (new == NULL)
-    {
-        errx(1, "failed to create a new redir ast");
-    }
-
-    new->type = AST_REDIRECTION;
-
-    return new;
 }
 
 struct ast *ast_new(enum ast_type type)

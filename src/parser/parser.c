@@ -48,5 +48,6 @@ enum parser_status parse(struct ast **res, struct lexer *lexer)
     }
 
     ast_free(*res);
+
     return P_KO;
 }
