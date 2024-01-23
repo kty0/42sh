@@ -2,7 +2,8 @@ lib_LIBRARIES = liblexer.a libdlexer.a
 
 liblexer_a_SOURCES =  \
 	lexer.c \
-	lexer.h
+	lexer.h \
+	get_string.c
 
 liblexer_a_CPPFLAGS = -I$(top_srcdir)/src
 
@@ -10,7 +11,8 @@ liblexer_a_CFLAGS = -g -std=c99 -Werror -Wall -Wextra -Wvla -pedantic
 
 libdlexer_a_SOURCES =  \
 	lexer.c \
-	lexer.h
+	lexer.h \
+	get_string.c
 
 libdlexer_a_CPPFLAGS = -I$(top_srcdir)/src
 
