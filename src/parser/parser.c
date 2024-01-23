@@ -89,8 +89,6 @@ static enum parser_status parse_list(struct ast **res, struct lexer *lexer)
             tok = lexer_peek(lexer);
         }
 
-        free_token(tok);
-
         *res = list;
 
         return P_OK;
