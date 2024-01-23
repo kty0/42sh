@@ -1,28 +1,37 @@
 #include "lexer.h"
 
+#include <ctype.h>
 #include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "token.h"
 
 static struct token tokens[] = {
-    { TOKEN_IF, "if" },       { TOKEN_THEN, "then" }, { TOKEN_ELIF, "elif" },
-    { TOKEN_ELSE, "else" },   { TOKEN_FI, "fi" },     { TOKEN_SEMICOLON, ";" },
-    { TOKEN_ERROR, "Error" }, { TOKEN_NOT, "!" },     { TOKEN_PIPE, "|" },
-    { TOKEN_WHILE, "while" }, { TOKEN_DO, "do" },     { TOKEN_DONE, "done" },
-    { TOKEN_UNTIL, "until" }, { TOKEN_FOR, "for" },   { TOKEN_IN, "in" },
-    { TOKEN_AND, "&&" },      { TOKEN_OR, "||" }
+    { TOKEN_IF, "if" },       { TOKEN_THEN, "then" },
+    { TOKEN_ELIF, "elif" },   { TOKEN_ELSE, "else" },
+    { TOKEN_FI, "fi" },       { TOKEN_SEMICOLON, ";" },
+    { TOKEN_ERROR, "error" }, { TOKEN_NOT, "!" },
+    { TOKEN_PIPE, "|" },      { TOKEN_WHILE, "while" },
+    { TOKEN_DO, "do" },       { TOKEN_DONE, "done" },
+    { TOKEN_UNTIL, "until" }, { TOKEN_FOR, "for" },
+    { TOKEN_IN, "in" },       { TOKEN_AND_IF, "&&" },
+    { TOKEN_OR_IF, "||" },    { TOKEN_NEWLINE, "\n" },
+    { TOKEN_DGREAT, ">>" },   { TOKEN_LESSAND, "<&" },
+    { TOKEN_GREATAND, ">&" }, { TOKEN_LESSGREAT, "<>" },
+    { TOKEN_CLOBBER, ">|" },  { TOKEN_GREAT, ">" },
+    { TOKEN_LESS, "<" }
 };
 
-struct lexer *lexer_new(char *input)
+struct lexer *lexer_new(FILE *file)
 {
     struct lexer *l = malloc(sizeof(struct lexer));
     if (!l)
     {
         return NULL;
     }
-    l->input = input;
+    l->file = file;
     l->pos = 0;
     l->current_tok.type = TOKEN_ERROR;
     return l;
@@ -33,159 +42,21 @@ void lexer_free(struct lexer *lexer)
     free(lexer);
 }
 
-static void lexer_skip_whitespace(struct lexer *lexer)
+static int check_solely_number(char *str)
 {
-    while (lexer->input[lexer->pos] == ' ' || lexer->input[lexer->pos] == '\t')
+    for (size_t i = 0; i < strlen(str); i++)
     {
-        lexer->pos++;
-    }
-}
-/**
- * if the current caractere is a '#' then check if it is a comment or not
- */
-static int check_comment(struct lexer *lexer)
-{
-    if (lexer->input[lexer->pos] == '#' && lexer->input[lexer->pos - 1] == '\\')
-    {
-        return 1;
-    }
-    return 0;
-}
-
-static void lexer_skip_comments(struct lexer *lexer)
-{
-    if (lexer->input[lexer->pos] == '#'
-        && (lexer->pos == 0 || lexer->input[lexer->pos - 1] != '\\'))
-    {
-        while (lexer->input[lexer->pos] != '\n'
-               && lexer->input[lexer->pos] != '\0')
+        if (!isdigit(str[i]))
         {
-            lexer->pos++;
+            return 0;
         }
     }
+    return 1;
 }
 
-/**
- * concatenate a quoted string with a string
- * use after generating a string from a quoted string
- */
-void concat_quoted_str(char **str, char *str_sub, int *len_tot)
+static int check_lessgreat(char c)
 {
-    size_t len_sub = strlen(str_sub) + 1;
-    *str = realloc(*str, *len_tot + len_sub);
-    strcpy(*str + *len_tot, str_sub);
-    len_sub--;
-    *len_tot += len_sub;
-}
-
-/**
- * generate a string fromm the quoted string and concatenate it into the full
- * string
- */
-static void str_quote(struct lexer *lexer, char **str, int *len_tot)
-{
-    char *begin = lexer->input + lexer->pos++;
-    int len = 0;
-    int check_end = 0;
-
-    while (check_end == 0 && lexer->input[lexer->pos] != '\0')
-    {
-        if (lexer->input[lexer->pos] == begin[0])
-        {
-            check_end = 1;
-            lexer->pos++;
-        }
-        else
-        {
-            lexer->pos++;
-            len++;
-        }
-    }
-    if (lexer->input[lexer->pos] == '\0' && check_end == 0)
-    {
-        free(*str);
-        *str = NULL;
-        return;
-    }
-    char *str_sub = malloc(len + 1);
-    strncpy(str_sub, begin + 1, len);
-    str_sub[len] = '\0';
-    concat_quoted_str(&(*str), str_sub, &(*len_tot));
-    free(str_sub);
-}
-
-/**
- * check is the caracter is a delimiter or not
- */
-static size_t is_delim(char c)
-{
-    return c == ';' || c == '\0' || c == ' ' || c == '\n' || c == '|';
-}
-
-/**
- * concatenate two substring
- * use before generating a string from a quoted string
- */
-static void concat_str(char **str, char *str_sub, int *len_tot, int len)
-{
-    *str = realloc(*str, *len_tot + len);
-    strncpy(*str + *len_tot, str_sub, len);
-    *len_tot += len;
-}
-
-static void check_delim_token(struct lexer *lexer, size_t *len, int deb)
-{
-    if ((lexer->input[lexer->pos] == ';' || lexer->input[lexer->pos] == '\n'
-         || lexer->input[lexer->pos] == '|')
-        && deb == 1)
-    {
-        (*len)++;
-        lexer->pos++;
-    }
-}
-
-/**
- * Create a string to creatw the tokens
- */
-static char *get_string(struct lexer *lexer)
-{
-    size_t len = 0;
-    if (lexer->input[lexer->pos] == '\0')
-    {
-        return NULL;
-    }
-
-    char *str = NULL;
-    int len_tot = 0;
-    int deb = 1;
-    while (!is_delim(lexer->input[lexer->pos]))
-    {
-        if (check_comment(lexer) && deb == 2)
-            len--;
-        deb++;
-        if (lexer->input[lexer->pos] == '"' || lexer->input[lexer->pos] == '\'')
-        {
-            concat_str(&str, lexer->input + lexer->pos - len, &len_tot, len);
-            str_quote(lexer, &str, &len_tot);
-            if (!str)
-            {
-                char *s = "Error";
-                return s;
-            }
-            len = 0;
-        }
-        else
-        {
-            lexer->pos++;
-            len++;
-        }
-    }
-    check_delim_token(lexer, &len, deb);
-    concat_str(&str, lexer->input + lexer->pos - len, &len_tot, len);
-    str = realloc(str, len_tot + 1);
-    str[len_tot] = '\0';
-
-    return str;
+    return c == '<' || c == '>';
 }
 
 /**
@@ -194,18 +65,13 @@ static char *get_string(struct lexer *lexer)
 static struct token parse_input_for_tok(struct lexer *lexer)
 {
     struct token new;
-    lexer_skip_whitespace(lexer);
-    lexer_skip_comments(lexer);
-    char *string = get_string(lexer);
+    char c = 0;
+    char *string = get_string(lexer, &c);
     int is_word = 1;
     new.value = NULL;
     if (string == NULL)
     {
         new.type = TOKEN_EOF;
-    }
-    else if (string[0] == '\n')
-    {
-        new.type = TOKEN_NEWLINE;
     }
     else
     {
@@ -222,9 +88,13 @@ static struct token parse_input_for_tok(struct lexer *lexer)
         {
             new.type = TOKEN_WORD;
             new.value = string;
+            if (check_solely_number(string) && check_lessgreat(c))
+            {
+                new.type = TOKEN_IONUMBER;
+            }
         }
     }
-    if (!is_word)
+    if (!is_word && new.type != TOKEN_ERROR)
     {
         free(string);
     }
