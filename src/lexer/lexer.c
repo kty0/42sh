@@ -1,6 +1,7 @@
 #include "lexer.h"
 
 #include <ctype.h>
+#include <err.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -103,10 +104,14 @@ static struct token parse_input_for_tok(struct lexer *lexer)
 
 struct token lexer_peek(struct lexer *lexer)
 {
-    int pos = lexer->pos;
     struct token initial_tok = lexer->current_tok;
+    lexer->pos = ftell(lexer->file);
     struct token res = lexer_pop(lexer);
-    lexer->pos = pos;
+    long pos = ftell(lexer->file);
+    if (fseek(lexer->file, -(pos - lexer->pos), SEEK_CUR) == -1)
+    {
+        errx(1, "fseek failed");
+    }
     lexer->current_tok = initial_tok;
     return res;
 }
