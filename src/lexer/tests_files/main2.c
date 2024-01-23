@@ -1,4 +1,8 @@
+#include <fcntl.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "lexer.h"
 #include "token.h"
@@ -20,34 +24,41 @@ char *tab[] = { [TOKEN_IF] = "if",
                 [TOKEN_DO] = "do",
                 [TOKEN_DONE] = "done",
                 [TOKEN_FOR] = "for",
-                [TOKEN_IN] = "in" };
+                [TOKEN_IN] = "in",
+                [TOKEN_AND] = "&&",
+                [TOKEN_OR] = "||" };
 
 int main(int argc, char *argv[])
 {
-    if (argc == 1)
+    if (argc != 2)
         return 1;
+    FILE *fd = fopen(argv[1], "r");
 
-    struct lexer *lexer = lexer_new(argv[1]);
+    struct stat sb;
+    if (stat(argv[1], &sb) == -1)
+    {
+        perror("stat");
+        exit(EXIT_FAILURE);
+    }
+
+    struct lexer *lexer = lexer_new(fd);
     struct token token = lexer_pop(lexer);
 
-    while (token.type != TOKEN_NEWLINE && token.type != TOKEN_ERROR
-           && token.type != TOKEN_EOF)
+    while (token.type != TOKEN_ERROR && token.type != TOKEN_EOF)
     {
         if (token.type == TOKEN_WORD)
-            printf("%s : %s\n", tab[token.type], token.value);
+            printf("%s:\t%s\n", tab[token.type], token.value);
         else
             printf("%s\n", tab[token.type]);
 
         free_token(token);
         token = lexer_pop(lexer);
     }
+    free_token(token);
     if (token.type == TOKEN_ERROR)
         printf("ALED\n");
-    if (token.type == TOKEN_NEWLINE)
-        printf("newline\n");
     if (token.type == TOKEN_EOF)
         printf("eof\n");
-    free_token(token);
 
     lexer_free(lexer);
 

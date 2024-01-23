@@ -1,11 +1,10 @@
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
+#define _POSIX_C_SOURCE 200809L
 
-#include "lexer.h"
-#include "token.h"
+#include <stdio.h>
+#include <string.h>
+
+#include "../lexer.h"
+#include "../token.h"
 
 char *tab[] = { [TOKEN_IF] = "if",
                 [TOKEN_THEN] = "then",
@@ -24,32 +23,35 @@ char *tab[] = { [TOKEN_IF] = "if",
                 [TOKEN_DO] = "do",
                 [TOKEN_DONE] = "done",
                 [TOKEN_FOR] = "for",
-                [TOKEN_IN] = "in" };
+                [TOKEN_IN] = "in",
+                [TOKEN_AND_IF] = "&&",
+                [TOKEN_OR_IF] = "||",
+                [TOKEN_IONUMBER] = "io number",
+                [TOKEN_LESS] = "<",
+                [TOKEN_GREAT] = ">",
+                [TOKEN_DGREAT] = ">>",
+                [TOKEN_LESSAND] = "<&",
+                [TOKEN_GREATAND] = ">&",
+                [TOKEN_LESSGREAT] = "<>",
+                [TOKEN_CLOBBER] = ">|" };
 
 int main(int argc, char *argv[])
 {
-    if (argc != 2)
+    if (argc == 1)
         return 1;
-    int fd = open(argv[1], O_RDONLY);
-    char buffer[4096];
-
-    struct stat sb;
-    if (stat(argv[1], &sb) == -1)
+    FILE *file = fmemopen(argv[1], strlen(argv[1]), "r");
+    if (file == NULL)
     {
-        perror("stat");
-        exit(EXIT_FAILURE);
+        return 1;
     }
-
-    read(fd, buffer, sb.st_size);
-    buffer[sb.st_size] = '\0';
-
-    struct lexer *lexer = lexer_new(buffer);
+    struct lexer *lexer = lexer_new(file);
     struct token token = lexer_pop(lexer);
 
-    while (token.type != TOKEN_ERROR && token.type != TOKEN_EOF)
+    while (token.type != TOKEN_NEWLINE && token.type != TOKEN_ERROR
+           && token.type != TOKEN_EOF)
     {
-        if (token.type == TOKEN_WORD)
-            printf("%s:\t%s\n", tab[token.type], token.value);
+        if (token.type == TOKEN_WORD || token.type == TOKEN_IONUMBER)
+            printf("%s : %s\n", tab[token.type], token.value);
         else
             printf("%s\n", tab[token.type]);
 
@@ -58,9 +60,11 @@ int main(int argc, char *argv[])
     }
     if (token.type == TOKEN_ERROR)
         printf("ALED\n");
-    free_token(token);
+    if (token.type == TOKEN_NEWLINE)
+        printf("newline\n");
     if (token.type == TOKEN_EOF)
         printf("eof\n");
+    free_token(token);
 
     lexer_free(lexer);
 

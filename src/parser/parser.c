@@ -119,7 +119,7 @@ static enum parser_status parse_and_or(struct ast **res, struct lexer *lexer)
 
     struct token tok = lexer_peek_free(lexer);
 
-    if (tok.type != TOKEN_AND && tok.type != TOKEN_OR)
+    if (tok.type != TOKEN_AND_IF && tok.type != TOKEN_OR_IF)
     {
         return P_OK;
     }
@@ -128,10 +128,10 @@ static enum parser_status parse_and_or(struct ast **res, struct lexer *lexer)
 
     struct ast_ope *ast_ope = &node->data.ast_ope;
 
-    ast_ope->type = tok.type == TOKEN_AND ? AND : OR;
+    ast_ope->type = tok.type == TOKEN_AND_IF ? AND : OR;
     ast_ope->left = *res;
 
-    while (tok.type == TOKEN_AND || tok.type == TOKEN_OR)
+    while (tok.type == TOKEN_AND_IF || tok.type == TOKEN_OR_IF)
     {
         tok = lexer_pop_free(lexer);
 

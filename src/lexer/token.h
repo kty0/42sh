@@ -15,7 +15,7 @@ enum token_type
     TOKEN_WORD, // words
     TOKEN_ERROR, // error
     TOKEN_EOF, // end of file
-    TOKEN_NOT, // not
+    TOKEN_NOT, // !
     TOKEN_PIPE, // pipe
     TOKEN_WHILE, // while
     TOKEN_DO, // do
@@ -23,16 +23,16 @@ enum token_type
     TOKEN_UNTIL, // until
     TOKEN_FOR, // for
     TOKEN_IN, // in
-    TOKEN_AND, // and
-    TOKEN_OR, // or
-    TOKEN_IONUMBER, // ionumber
+    TOKEN_AND_IF, // and
+    TOKEN_OR_IF, // or
     TOKEN_LESS, // <
-    TOKEN_GREAT,// >
+    TOKEN_GREAT, // >
+    TOKEN_DGREAT, // >>
     TOKEN_LESSAND, // <&
     TOKEN_GREATAND, // >&
-    TOKEN_LESSGREAT, // <>
-    TOKEN_DGREAT, // >>
+    TOKEN_LESSGREAT, //<>
     TOKEN_CLOBBER, // >|
+    TOKEN_IONUMBER,
 };
 
 struct token
