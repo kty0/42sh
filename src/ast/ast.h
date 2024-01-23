@@ -3,20 +3,33 @@
 
 enum ast_type
 {
-    AST_COMMAND,
-    AST_LIST,
     AST_IF,
     AST_NOT,
+    AST_LIST,
+    AST_WORD,
     AST_PIPE,
     AST_WHILE,
     AST_UNTIL,
+    AST_COMMAND,
     AST_OPERATOR,
+    AST_REDIRECTION,
 };
 
 enum ope_type
 {
     AND,
     OR
+};
+
+enum redir_type
+{
+    LESS,
+    GREAT,
+    LESSAND,
+    GREATAND,
+    LESSGREAT,
+    DGREAT,
+    CLOBBER,
 };
 
 /* definition of the ast nodes */
@@ -68,6 +81,20 @@ struct ast_ope
     struct ast *right;
 };
 
+struct ast_redir
+{
+    enum redir_type type;
+    int fd;
+    char *file;
+    struct ast *left;
+    struct ast *right;
+};
+
+struct ast_word
+{
+    char *arg;
+};
+
 /* a few very nice base structs */
 
 union ast_union
@@ -80,6 +107,8 @@ union ast_union
     struct ast_while ast_while;
     struct ast_until ast_until;
     struct ast_ope ast_ope;
+    struct ast_redir ast_redir;
+    struct ast_word ast_word;
 };
 
 struct ast

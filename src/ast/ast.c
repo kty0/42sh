@@ -157,9 +157,16 @@ static void print_ope(struct ast *ast)
     printf("} ");
 }
 
+static void print_redir(struct ast *ast)
+{
+    struct ast_redir *ast_redir = &ast->data.ast_redir;
+    printf("");
+    return;
+}
+
 void ast_print(struct ast *ast)
 {
-    if (ast == NULL)
+    if (ast == NULL)
     {
         return;
     }
@@ -186,6 +193,8 @@ void ast_print(struct ast *ast)
         break;
     case AST_OPERATOR:
         print_ope(ast);
+    case AST_REDIRECTION:
+        print_redir(ast);
         break;
     default:
         break;

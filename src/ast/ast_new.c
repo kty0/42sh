@@ -127,6 +127,34 @@ struct ast *ast_new_ope(void)
     return new;
 }
 
+struct ast *ast_new_redir(void)
+{
+    struct ast *new = calloc(1, sizeof(struct ast));
+    if (new == NULL)
+    {
+        errx(1, "failed to create a new redir ast");
+    }
+
+    new->type = AST_REDIRECTION;
+
+    return new;
+
+}
+
+struct ast *ast_new_word(void)
+{
+    struct ast *new = calloc(1, sizeof(struct ast));
+    if (new == NULL)
+    {
+        errx(1, "failed to create a new redir ast");
+    }
+
+    new->type = AST_REDIRECTION;
+
+    return new;
+
+}
+
 struct ast *ast_new(enum ast_type type)
 {
     switch (type)
@@ -147,6 +175,10 @@ struct ast *ast_new(enum ast_type type)
         return ast_new_until();
     case AST_OPERATOR:
         return ast_new_ope();
+    case AST_REDIRECTION:
+        return ast_new_redir();
+    case AST_WORD:
+        return ast_new_word();
     default:
         return NULL;
     }

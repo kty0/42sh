@@ -26,6 +26,11 @@ static enum parser_status parse_rule_while(struct ast **res,
                                            struct lexer *lexer);
 static enum parser_status parse_rule_until(struct ast **res,
                                            struct lexer *lexer);
+static enum parser_status parse_redirection(struct ast **res,
+                                            struct lexer *lexer);
+static enum parser_status parse_element(struct ast **res, struct lexer *lexer);
+
+static enum parser_status parse_prefix(struct ast **res, struct lexer *lexer);
 
 enum parser_status parse(struct ast **res, struct lexer *lexer)
 {
@@ -575,30 +580,82 @@ static enum parser_status parse_simple_command(struct ast **res,
                                                struct lexer *lexer)
 {
     struct token tok = lexer_peek_free(lexer);
+    struct ast *result = NULL;
+    struct ast *node = NULL;
 
-    if (tok.type == TOKEN_WORD)
+    while(parse_prefix(res, lexer) != P_KO)
     {
-        tok = lexer_pop(lexer);
-
-        struct ast *node = ast_new(AST_COMMAND);
-
-        if (ast_cmd_push(node, tok.value))
+        if (!node)
         {
-            ast_free(node);
-            return P_KO;
+            node = *res;
+            result = *res;
         }
-
-        *res = node;
-
-        while (parse_element(res, lexer) == P_OK)
+        else
         {
-            continue;
+            struct ast_redir *ast_redir = &node->data.ast_redir;
+            ast_redir->right = *res;
+            node = *res;
         }
+    }
 
+    tok = lexer_peek_free(lexer);
+
+    if (tok.type != TOKEN_WORD)
+    {
         return P_OK;
     }
 
-    return P_KO;
+    tok = lexer_pop(lexer);
+
+    struct ast *ast_cmd = ast_new(AST_COMMAND);
+
+    ast_cmd_push(ast_cmd, tok.value);
+
+    if (!node)
+    {
+        node = ast_cmd;
+        result = ast_cmd;
+    }
+    else
+    {
+        struct ast_redir *ast_redir = &node->data.ast_redir;
+        ast_redir->left = ast_cmd;
+    }
+
+    tok = lexer_peek(lexer);
+
+    while (parse_element(res, lexer) != P_KO)
+    {
+        if ((*res)->type == AST_WORD)
+        {
+            ast_cmd_push(ast_cmd, tok.value);
+        }
+        else
+        {
+            free_token(tok);
+
+            struct ast_redir *ast_redir = &(*res)->data.ast_redir;
+
+            if (node->type == AST_COMMAND)
+            {
+                ast_redir->left = node;
+                node = *res;
+                result = *res;
+            }
+            else
+            {
+                struct ast_redir *old_node = &node->data.ast_redir;
+
+                ast_redir->left = old_node->left;
+                old_node->right = *res;
+                node = *res;
+            }
+        }
+    }
+
+    *res = result;
+
+    return P_OK;
 }
 
 static enum parser_status parse_element(struct ast **res, struct lexer *lexer)
@@ -609,10 +666,68 @@ static enum parser_status parse_element(struct ast **res, struct lexer *lexer)
     {
         tok = lexer_pop(lexer);
 
-        ast_cmd_push(*res, tok.value);
+        struct ast *ast = ast_new(AST_WORD);
+
+        struct ast_word *ast_word = &ast->data.ast_word;
+
+        ast_word->arg = tok.value;
+        *res = ast;
 
         return P_OK;
     }
 
+    return parse_redirection(res,lexer);
+}
+
+static enum parser_status parse_redirection(struct ast **res,
+                                            struct lexer *lexer)
+{
+    struct token tok = lexer_peek(lexer);
+
+    int io_nb = -1;
+
+    if (tok.type == TOKEN_IONUMBER)
+    {
+        io_nb = atoi(tok.value);
+        lexer_pop_free(lexer);
+    }
+
+    tok = lexer_peek(lexer);
+
+    if (tok.type == TOKEN_LESS || tok.type == TOKEN_GREAT
+        || tok.type == TOKEN_LESSAND || tok.type == TOKEN_GREATAND
+        || tok.type == TOKEN_LESSGREAT || tok.type == TOKEN_DGREAT
+        || tok.type == TOKEN_CLOBBER)
+    {
+       tok = lexer_pop_free(lexer);
+
+       struct ast *node = ast_new(AST_REDIRECTION);
+       struct ast_redir *ast_redir = &node->data.ast_redir;
+
+       if (io_nb != -1)
+       {
+           ast_redir->fd = io_nb;
+       }
+
+       tok = lexer_peek_free(lexer);
+
+       if (tok.type != TOKEN_WORD)
+       {
+           return P_KO;
+       }
+
+       tok = lexer_pop(lexer);
+       ast_redir->file = tok.value;
+
+       *res = node;
+
+       return P_OK;
+    }
+
     return P_KO;
+}
+
+static enum parser_status parse_prefix(struct ast **res, struct lexer *lexer)
+{
+    return parse_redirection(res,lexer);
 }

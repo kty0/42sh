@@ -25,6 +25,14 @@ enum token_type
     TOKEN_IN, // in
     TOKEN_AND, // and
     TOKEN_OR, // or
+    TOKEN_IONUMBER, // ionumber
+    TOKEN_LESS, // <
+    TOKEN_GREAT,// >
+    TOKEN_LESSAND, // <&
+    TOKEN_GREATAND, // >&
+    TOKEN_LESSGREAT, // <>
+    TOKEN_DGREAT, // >>
+    TOKEN_CLOBBER, // >|
 };
 
 struct token
