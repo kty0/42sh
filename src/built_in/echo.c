@@ -14,29 +14,27 @@ static int set_flags(char *option, int *newline, int *enable)
                 *newline = 1;
                 *enable = 1;
 
-                return 1;
+                return 0;
             }
 
-            if (option[i] == 'E' && *enable == 2)
+            if (option[i] == 'E' && !*enable)
             {
                 *enable = 0;
             }
-
-            if (option[i] == 'e')
+            else if (option[i] == 'e')
             {
                 *enable = 1;
             }
-
-            if (option[i] == 'n')
+            else if (option[i] == 'n')
             {
                 *newline = 0;
             }
         }
 
-        return 2;
+        return 1;
     }
 
-    return 1;
+    return 0;
 }
 
 static void print(int enable, char *str)
@@ -75,14 +73,19 @@ static void print(int enable, char *str)
 int echo(char *args[])
 {
     int newline = 1;
-    int enable = 2;
+    int enable = 0;
 
     if (args[1] == NULL)
     {
+        puts("");
         return 0;
     }
 
-    int i = set_flags(args[1], &newline, &enable);
+    int i = 1;
+    for (; set_flags(args[i], &newline, &enable); i++)
+    {
+        continue;
+    }
 
     if (args[i] != NULL)
     {
