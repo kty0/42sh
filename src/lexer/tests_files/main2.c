@@ -4,8 +4,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "lexer.h"
-#include "token.h"
+#include "../lexer.h"
+#include "../token.h"
 
 char *tab[] = { [TOKEN_IF] = "if",
                 [TOKEN_THEN] = "then",
@@ -25,8 +25,8 @@ char *tab[] = { [TOKEN_IF] = "if",
                 [TOKEN_DONE] = "done",
                 [TOKEN_FOR] = "for",
                 [TOKEN_IN] = "in",
-                [TOKEN_AND] = "&&",
-                [TOKEN_OR] = "||" };
+                [TOKEN_AND_IF] = "&&",
+                [TOKEN_OR_IF] = "||" };
 
 int main(int argc, char *argv[])
 {

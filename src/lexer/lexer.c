@@ -25,19 +25,6 @@ static struct token tokens[] = {
     { TOKEN_LESS, "<" }
 };
 
-struct lexer *lexer_new(FILE *file)
-{
-    struct lexer *l = malloc(sizeof(struct lexer));
-    if (!l)
-    {
-        return NULL;
-    }
-    l->file = file;
-    l->pos = 0;
-    l->current_tok.type = TOKEN_ERROR;
-    return l;
-}
-
 void lexer_free(struct lexer *lexer)
 {
     free(lexer);
@@ -66,8 +53,9 @@ static int check_lessgreat(char c)
 static struct token parse_input_for_tok(struct lexer *lexer)
 {
     struct token new;
-    char c = 0;
+    char c = lexer->charac;
     char *string = get_string(lexer, &c);
+    lexer->charac = c;
     int is_word = 1;
     new.value = NULL;
     if (string == NULL)
@@ -102,33 +90,33 @@ static struct token parse_input_for_tok(struct lexer *lexer)
     return new;
 }
 
+struct lexer *lexer_new(FILE *file)
+{
+    struct lexer *l = calloc(1, sizeof(struct lexer));
+    if (!l)
+    {
+        return NULL;
+    }
+    l->file = file;
+    l->current_tok.type = TOKEN_EOF;
+    l->next_tok.type = TOKEN_EOF;
+    l->charac = ' ';
+    l->current_tok = parse_input_for_tok(l);
+    l->next_tok = parse_input_for_tok(l);
+    return l;
+}
+
 struct token lexer_peek(struct lexer *lexer)
 {
-    struct token initial_tok = lexer->current_tok;
-    lexer->pos = ftell(lexer->file);
-    struct token res = lexer_pop(lexer);
-    long pos = ftell(lexer->file);
-    if (fseek(lexer->file, -(pos - lexer->pos), SEEK_CUR) == -1)
-    {
-        errx(1, "fseek failed");
-    }
-    lexer->current_tok = initial_tok;
-    return res;
+    return lexer->current_tok;
 }
 
 struct token lexer_pop(struct lexer *lexer)
 {
-    struct token curr_tok;
-    lexer->current_tok = parse_input_for_tok(lexer);
-    curr_tok = lexer->current_tok;
+    struct token curr_tok = lexer->current_tok;
+    lexer->current_tok = lexer->next_tok;
+    lexer->next_tok = parse_input_for_tok(lexer);
     return curr_tok;
-}
-
-struct token lexer_peek_free(struct lexer *lexer)
-{
-    struct token res = lexer_peek(lexer);
-    free_token(res);
-    return res;
 }
 
 struct token lexer_pop_free(struct lexer *lexer)
