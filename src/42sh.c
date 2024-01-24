@@ -24,7 +24,8 @@ static int parse_eval(FILE *stream, enum source source)
     struct lexer *lexer = lexer_new(stream);
     struct ast *ast;
 
-    struct token tok = lexer_peek_free(lexer);
+    struct token tok = lexer_peek(lexer);
+
     int res = 0;
 
     while (tok.type != TOKEN_EOF)
@@ -45,7 +46,7 @@ static int parse_eval(FILE *stream, enum source source)
 
         ast_free(ast);
 
-        tok = lexer_peek_free(lexer);
+        tok = lexer_peek(lexer);
     }
 
     if (source != STDIN)
