@@ -8,8 +8,9 @@
 struct lexer
 {
     FILE *file;
-    long pos; // The current offset inside the input data
-    struct token current_tok; // The next token, if processed
+    struct token current_tok; // The current free_token
+    struct token next_tok;
+    char charac;
 };
 
 // initialize the lexer

@@ -34,7 +34,7 @@ static enum parser_status parse_prefix(struct ast **res, struct lexer *lexer);
 
 enum parser_status parse(struct ast **res, struct lexer *lexer)
 {
-    struct token tok = lexer_peek_free(lexer);
+    struct token tok = lexer_peek(lexer);
 
     if (tok.type == TOKEN_NEWLINE || tok.type == TOKEN_EOF)
     {
@@ -54,7 +54,7 @@ enum parser_status parse(struct ast **res, struct lexer *lexer)
         return P_KO;
     }
 
-    tok = lexer_peek_free(lexer);
+    tok = lexer_peek(lexer);
 
     if (tok.type == TOKEN_NEWLINE || tok.type == TOKEN_EOF)
     {
@@ -78,7 +78,7 @@ static enum parser_status parse_list(struct ast **res, struct lexer *lexer)
         struct ast *list = ast_new(AST_LIST);
         ast_list_push(list, *res);
 
-        struct token tok = lexer_peek_free(lexer);
+        struct token tok = lexer_peek(lexer);
 
         while (tok.type == TOKEN_SEMICOLON)
         {
@@ -115,7 +115,7 @@ static enum parser_status parse_and_or(struct ast **res, struct lexer *lexer)
 
     /* Checking if there is an operator */
 
-    struct token tok = lexer_peek_free(lexer);
+    struct token tok = lexer_peek(lexer);
 
     if (tok.type != TOKEN_AND_IF && tok.type != TOKEN_OR_IF)
     {
@@ -150,7 +150,7 @@ static enum parser_status parse_and_or(struct ast **res, struct lexer *lexer)
 
         ast_ope = new_ope;
 
-        tok = lexer_peek_free(lexer);
+        tok = lexer_peek(lexer);
     }
 
     *res = node;
@@ -162,7 +162,7 @@ static enum parser_status parse_pipeline(struct ast **res, struct lexer *lexer)
 {
     /* Checking if there is a TOKEN_NOT to begin with for later */
 
-    struct token tok = lexer_peek_free(lexer);
+    struct token tok = lexer_peek(lexer);
     int is_not = tok.type == TOKEN_NOT;
 
     if (is_not)
@@ -179,7 +179,7 @@ static enum parser_status parse_pipeline(struct ast **res, struct lexer *lexer)
 
     /* Checking if there is a pipe */
 
-    tok = lexer_peek_free(lexer);
+    tok = lexer_peek(lexer);
 
     if (tok.type != TOKEN_PIPE)
     {
@@ -214,7 +214,7 @@ static enum parser_status parse_pipeline(struct ast **res, struct lexer *lexer)
 
             ast_pipe = new_pipe;
 
-            tok = lexer_peek_free(lexer);
+            tok = lexer_peek(lexer);
         }
     }
 
@@ -258,7 +258,7 @@ static enum parser_status parse_shell_command(struct ast **res,
 
 static enum parser_status parse_rule_if(struct ast **res, struct lexer *lexer)
 {
-    struct token tok = lexer_peek_free(lexer);
+    struct token tok = lexer_peek(lexer);
 
     if (tok.type != TOKEN_IF)
     {
@@ -279,7 +279,7 @@ static enum parser_status parse_rule_if(struct ast **res, struct lexer *lexer)
 
     ast_if->condition = *res;
 
-    tok = lexer_peek_free(lexer);
+    tok = lexer_peek(lexer);
 
     if (tok.type != TOKEN_THEN)
     {
@@ -297,7 +297,7 @@ static enum parser_status parse_rule_if(struct ast **res, struct lexer *lexer)
 
     ast_if->then_body = *res;
 
-    tok = lexer_peek_free(lexer);
+    tok = lexer_peek(lexer);
 
     *res = node_if;
 
@@ -314,7 +314,7 @@ static enum parser_status parse_rule_if(struct ast **res, struct lexer *lexer)
         return P_KO;
     }
 
-    tok = lexer_peek_free(lexer);
+    tok = lexer_peek(lexer);
 
     if (tok.type != TOKEN_FI)
     {
@@ -331,7 +331,7 @@ static enum parser_status parse_rule_if(struct ast **res, struct lexer *lexer)
 static enum parser_status parse_rule_while(struct ast **res,
                                            struct lexer *lexer)
 {
-    struct token tok = lexer_peek_free(lexer);
+    struct token tok = lexer_peek(lexer);
 
     if (tok.type != TOKEN_WHILE)
     {
@@ -351,7 +351,7 @@ static enum parser_status parse_rule_while(struct ast **res,
 
     ast_while->condition = *res;
 
-    tok = lexer_peek_free(lexer);
+    tok = lexer_peek(lexer);
 
     if (tok.type != TOKEN_DO)
     {
@@ -367,7 +367,7 @@ static enum parser_status parse_rule_while(struct ast **res,
 
     ast_while->body = *res;
 
-    tok = lexer_peek_free(lexer);
+    tok = lexer_peek(lexer);
 
     if (tok.type != TOKEN_DONE)
     {
@@ -384,7 +384,7 @@ static enum parser_status parse_rule_while(struct ast **res,
 static enum parser_status parse_rule_until(struct ast **res,
                                            struct lexer *lexer)
 {
-    struct token tok = lexer_peek_free(lexer);
+    struct token tok = lexer_peek(lexer);
 
     if (tok.type != TOKEN_UNTIL)
     {
@@ -404,7 +404,7 @@ static enum parser_status parse_rule_until(struct ast **res,
 
     ast_until->condition = *res;
 
-    tok = lexer_peek_free(lexer);
+    tok = lexer_peek(lexer);
 
     if (tok.type != TOKEN_DO)
     {
@@ -422,7 +422,7 @@ static enum parser_status parse_rule_until(struct ast **res,
 
     ast_until->body = *res;
 
-    tok = lexer_peek_free(lexer);
+    tok = lexer_peek(lexer);
 
     if (tok.type != TOKEN_DONE)
     {
@@ -440,13 +440,13 @@ static enum parser_status parse_rule_until(struct ast **res,
 static enum parser_status parse_compound_list(struct ast **res,
                                               struct lexer *lexer)
 {
-    struct token tok = lexer_peek_free(lexer);
+    struct token tok = lexer_peek(lexer);
 
     while (tok.type == TOKEN_NEWLINE)
     {
         tok = lexer_pop_free(lexer);
 
-        tok = lexer_peek_free(lexer);
+        tok = lexer_peek(lexer);
     }
 
     if (parse_and_or(res, lexer) == P_OK)
@@ -455,19 +455,19 @@ static enum parser_status parse_compound_list(struct ast **res,
 
         ast_list_push(list, *res);
 
-        struct token tok = lexer_peek_free(lexer);
+        struct token tok = lexer_peek(lexer);
 
         while (tok.type == TOKEN_SEMICOLON || tok.type == TOKEN_NEWLINE)
         {
             tok = lexer_pop_free(lexer);
 
-            tok = lexer_peek_free(lexer);
+            tok = lexer_peek(lexer);
 
             while (tok.type == TOKEN_NEWLINE)
             {
                 tok = lexer_pop_free(lexer);
 
-                tok = lexer_peek_free(lexer);
+                tok = lexer_peek(lexer);
             }
 
             if (parse_and_or(res, lexer) == P_KO)
@@ -477,16 +477,16 @@ static enum parser_status parse_compound_list(struct ast **res,
 
             ast_list_push(list, *res);
 
-            tok = lexer_peek_free(lexer);
+            tok = lexer_peek(lexer);
         }
 
-        tok = lexer_peek_free(lexer);
+        tok = lexer_peek(lexer);
 
         while (tok.type == TOKEN_NEWLINE)
         {
             tok = lexer_pop_free(lexer);
 
-            tok = lexer_peek_free(lexer);
+            tok = lexer_peek(lexer);
         }
 
         *res = list;
@@ -500,7 +500,7 @@ static enum parser_status parse_compound_list(struct ast **res,
 static enum parser_status parse_else_clause(struct ast **res,
                                             struct lexer *lexer)
 {
-    struct token tok = lexer_peek_free(lexer);
+    struct token tok = lexer_peek(lexer);
 
     struct ast *node_if = *res;
 
@@ -540,7 +540,7 @@ static enum parser_status parse_else_clause(struct ast **res,
 
         ast_if->condition = *res;
 
-        tok = lexer_peek_free(lexer);
+        tok = lexer_peek(lexer);
 
         if (tok.type != TOKEN_THEN)
         {
@@ -556,7 +556,7 @@ static enum parser_status parse_else_clause(struct ast **res,
 
         ast_if->then_body = *res;
 
-        tok = lexer_peek_free(lexer);
+        tok = lexer_peek(lexer);
 
         if (tok.type == TOKEN_ELSE || tok.type == TOKEN_ELIF)
         {
@@ -577,9 +577,7 @@ static enum parser_status parse_else_clause(struct ast **res,
 static enum parser_status parse_simple_command(struct ast **res,
                                                struct lexer *lexer)
 {
-    struct token tok = lexer_peek_free(lexer);
-    struct ast *result = NULL;
-    struct ast *node = NULL;
+    struct token tok = lexer_peek(lexer);
 
     while (parse_prefix(res, lexer) != P_KO)
     {
@@ -658,7 +656,7 @@ static enum parser_status parse_simple_command(struct ast **res,
 
 static enum parser_status parse_element(struct ast **res, struct lexer *lexer)
 {
-    struct token tok = lexer_peek_free(lexer);
+    struct token tok = lexer_peek(lexer);
 
     if (tok.type == TOKEN_WORD)
     {

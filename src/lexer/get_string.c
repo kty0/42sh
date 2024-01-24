@@ -91,7 +91,10 @@ static int backslash(struct lexer *lexer, char *c, char **str, int *len)
     {
         return 0;
     }
-    append_char(str, len, *c);
+    if (!isblank(*c))
+    {
+        append_char(str, len, *c);
+    }
     return 1;
 }
 
@@ -126,7 +129,6 @@ static char *free_error(char *str)
 char *get_string(struct lexer *lexer, char *c)
 {
     // if segfault check append_char
-    *c = fgetc(lexer->file);
     char *str = NULL;
     int len = 0;
     while (*c != EOF)
@@ -139,10 +141,6 @@ char *get_string(struct lexer *lexer, char *c)
         else if (len && check_operator(str[len - 1])
                  && !existing_operator(str, *c, len)) // rule 3
         {
-            if (fseek(lexer->file, -1, SEEK_CUR) == -1)
-            {
-                return free_error(str);
-            }
             break;
         }
         else if (check_quote(*c)) // rule 4
@@ -154,10 +152,6 @@ char *get_string(struct lexer *lexer, char *c)
         }
         else if (len && check_operator(*c)) // rule 6
         {
-            if (fseek(lexer->file, -1, SEEK_CUR) == -1)
-            {
-                return free_error(str);
-            }
             break;
         }
         else if (isblank(*c)) // rule 7
