@@ -32,7 +32,6 @@ enum parser_status parse(struct ast **res, struct lexer *lexer)
     if (parse_list(res, lexer) != P_OK)
     {
         ast_free(*res);
-        fprintf(stderr, "mmh no gud, parsing failed somehow\n");
         return P_KO;
     }
 
@@ -49,6 +48,5 @@ enum parser_status parse(struct ast **res, struct lexer *lexer)
     }
 
     ast_free(*res);
-    fprintf(stderr, "mmh no gud, parsing failed somehow\n");
     return P_KO;
 }

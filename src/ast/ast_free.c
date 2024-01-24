@@ -131,6 +131,6 @@ void ast_free(struct ast *ast)
         ast_free_ope(ast);
         break;
     default:
-        errx(1, "failed to free the AST");
+        errx(2, "failed to free the AST");
     }
 }

@@ -33,7 +33,7 @@ static int parse_eval(FILE *stream, enum source source)
         if (parse(&ast, lexer) == P_KO)
         {
             lexer_free(lexer);
-            return 1;
+            errx(2, "mmh no gud, parsing failed somehow");
         }
 
         if (getenv("PRETTY"))
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
         int result = parse_eval(stdin, STDIN);
         if (result == -1)
         {
-            errx(1, "syntax error detected in parsing");
+            errx(2, "syntax error detected in parsing");
         }
 
         return result;
@@ -88,14 +88,14 @@ int main(int argc, char *argv[])
             int result = parse_eval(stream, ARGV);
             if (result == -1)
             {
-                errx(1, "syntax error detected in parsing");
+                errx(2, "syntax error detected in parsing");
             }
 
             return result;
         }
         else
         {
-            errx(1, "usage: ./42sh [OPTIONS] [SCRIPT] [ARGUMENTS...]");
+            errx(127, "usage: ./42sh [OPTIONS] [SCRIPT] [ARGUMENTS...]");
         }
     }
 
@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
     int result = parse_eval(stream, SCRIPT);
     if (result == -1)
     {
-        errx(1, "syntax error detected in parsing");
+        errx(2, "syntax error detected in parsing");
     }
 
     return result;
