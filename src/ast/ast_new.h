@@ -25,4 +25,4 @@ struct ast *ast_new_redir(void);
 
 struct ast *ast_new_word(void);
 
-/bin/bash: line 1: q: command not found
+#endif /* AST_NEW_H */

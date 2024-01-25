@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #include "eval.h"
 #include "../ast/ast.h"
@@ -20,9 +21,8 @@ static int eval_redir_less(struct ast_redir *ast_redir)
         return 1;
     }
 
-    fseek(fp, 0L, SEEK_END);
-    int length = ftell(fp);
-    fseek(fp, 0L, SEEK_SET);
+    off_t length = lseek(fd, 0L, SEEK_END);
+    lseek(fd, 0L, SEEK_SET);
 
     char *buffer = malloc(sizeof(char) * (length + 1));
 
@@ -39,7 +39,7 @@ static int eval_redir_less(struct ast_redir *ast_redir)
     free(buffer);
     close(fd);
 
-    return res;
+    return 0;
 }
 
 static int eval_redir_great(struct ast_redir *ast_redir)
@@ -194,7 +194,7 @@ int eval_redir(struct ast *ast)
     {
         return eval_redir_less(ast_redir);
     }
-    else if (ast_redir->type == GREATER)
+    else if (ast_redir->type == GREAT)
     {
         return eval_redir_greater(ast_redir);
     }
@@ -216,7 +216,7 @@ int eval_redir(struct ast *ast)
     }
     else if (ast_redir->type == CLOBBER)
     {
-        return eval_redir_great(ast_redir);
+        return eval_redir_clobber(ast_redir);
     }
     else
     {

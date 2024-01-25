@@ -708,6 +708,17 @@ static enum parser_status parse_redirection(struct ast **res,
         {
             ast_redir->fd = io_nb;
         }
+        else
+        {
+            if (tok.type == GREAT || tok.type == CLOBBER || tok.type == DGREAT)
+            {
+                ast_redir->fd = 1;
+            }
+            else if (tok.type == LESS)
+            {
+                ast_redir->fd = 0;
+            }
+        }
 
         tok = lexer_peek_free(lexer);
 
