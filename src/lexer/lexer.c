@@ -10,19 +10,13 @@
 #include "token.h"
 
 static struct token tokens[] = {
-    { TOKEN_IF, "if" },       { TOKEN_THEN, "then" },
-    { TOKEN_ELIF, "elif" },   { TOKEN_ELSE, "else" },
-    { TOKEN_FI, "fi" },       { TOKEN_SEMICOLON, ";" },
-    { TOKEN_ERROR, "error" }, { TOKEN_NOT, "!" },
-    { TOKEN_PIPE, "|" },      { TOKEN_WHILE, "while" },
-    { TOKEN_DO, "do" },       { TOKEN_DONE, "done" },
-    { TOKEN_UNTIL, "until" }, { TOKEN_FOR, "for" },
-    { TOKEN_IN, "in" },       { TOKEN_AND_IF, "&&" },
-    { TOKEN_OR_IF, "||" },    { TOKEN_NEWLINE, "\n" },
-    { TOKEN_DGREAT, ">>" },   { TOKEN_LESSAND, "<&" },
-    { TOKEN_GREATAND, ">&" }, { TOKEN_LESSGREAT, "<>" },
-    { TOKEN_CLOBBER, ">|" },  { TOKEN_GREAT, ">" },
-    { TOKEN_LESS, "<" }
+    { TOKEN_SEMICOLON, ";" },  { TOKEN_ERROR, "error" },
+    { TOKEN_NOT, "!" },        { TOKEN_PIPE, "|" },
+    { TOKEN_AND_IF, "&&" },    { TOKEN_OR_IF, "||" },
+    { TOKEN_NEWLINE, "\n" },   { TOKEN_DGREAT, ">>" },
+    { TOKEN_LESSAND, "<&" },   { TOKEN_GREATAND, ">&" },
+    { TOKEN_LESSGREAT, "<>" }, { TOKEN_CLOBBER, ">|" },
+    { TOKEN_GREAT, ">" },      { TOKEN_LESS, "<" }
 };
 
 void lexer_free(struct lexer *lexer)
