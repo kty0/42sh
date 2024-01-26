@@ -93,8 +93,8 @@ enum parser_status parse_pipeline(struct ast **res, struct lexer *lexer)
     return P_OK;
 }
 
-enum parser_status parse_redirection(struct ast **res,
-                                            struct lexer *lexer)
+
+enum parser_status parse_redirection(struct ast **res, struct lexer *lexer)
 {
     struct token tok = lexer_peek(lexer);
 
@@ -124,14 +124,15 @@ enum parser_status parse_redirection(struct ast **res,
         }
         else
         {
-            if (tok.type == TOKEN_GREAT || tok.type == TOKEN_CLOBBER || tok.type == TOKEN_DGREAT
-                    || tok.type == TOKEN_GREATAND)
+            if (tok.type == TOKEN_GREAT || tok.type == TOKEN_CLOBBER
+                || tok.type == TOKEN_DGREAT || tok.type == TOKEN_GREATAND)
             {
-                ast_redir->fd = 1; //stdout
+                ast_redir->fd = 1; // stdout
             }
-            else if (tok.type == TOKEN_LESS || tok.type == TOKEN_LESSGREAT || tok.type == TOKEN_LESSAND)
+            else if (tok.type == TOKEN_LESS || tok.type == TOKEN_LESSGREAT
+                     || tok.type == TOKEN_LESSAND)
             {
-                ast_redir->fd = 0; //stdin
+                ast_redir->fd = 0; // stdin
             }
         }
 

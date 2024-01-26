@@ -1,6 +1,7 @@
 #ifndef AST_NEW_H
 #define AST_NEW_H
 
+#include "../lexer/token.h"
 #include "ast.h"
 #include "../lexer/token.h"
 

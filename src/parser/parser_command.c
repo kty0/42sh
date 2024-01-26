@@ -36,7 +36,7 @@ enum parser_status parse_shell_command(struct ast **res, struct lexer *lexer)
     struct ast *result = NULL;
     struct ast *node = NULL;
 
-    while(parse_prefix(res, lexer) != P_KO)
+    while (parse_prefix(res, lexer) != P_KO)
     {
         if (!node)
         {

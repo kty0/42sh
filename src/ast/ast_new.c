@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "../lexer/token.h"
 #include "ast.h"
 #include "../lexer/token.h"
 
@@ -142,26 +143,26 @@ struct ast *ast_new_redir(enum token_type type)
 
     switch (type)
     {
-        case TOKEN_LESS:
-            ast_redir->type = LESS;
-            break;
-        case TOKEN_CLOBBER:
-            ast_redir->type = CLOBBER;
-            break;
-        case TOKEN_GREAT:
-            ast_redir->type = GREAT;
-            break;
-        case TOKEN_LESSGREAT:
-            ast_redir->type = LESSGREAT;
-            break;
-        case TOKEN_DGREAT:
-            ast_redir->type = DGREAT;
-            break;
-        case TOKEN_LESSAND:
-            ast_redir->type = LESSAND;
-            break;
-        default:
-            errx(2, "failed to recognize this new redir ast");
+    case TOKEN_LESS:
+        ast_redir->type = LESS;
+        break;
+    case TOKEN_CLOBBER:
+        ast_redir->type = CLOBBER;
+        break;
+    case TOKEN_GREAT:
+        ast_redir->type = GREAT;
+        break;
+    case TOKEN_LESSGREAT:
+        ast_redir->type = LESSGREAT;
+        break;
+    case TOKEN_DGREAT:
+        ast_redir->type = DGREAT;
+        break;
+    case TOKEN_LESSAND:
+        ast_redir->type = LESSAND;
+        break;
+    default:
+        errx(2, "failed to recognize this new redir ast");
     }
 
     return new;

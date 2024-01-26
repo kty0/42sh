@@ -177,5 +177,5 @@ enum parser_status parse_element(struct ast **res, struct lexer *lexer)
         return P_OK;
     }
 
-    return parse_redirection(res,lexer);
+    return parse_redirection(res, lexer);
 }

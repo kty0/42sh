@@ -1,4 +1,5 @@
 #include <err.h>
+#include <fcntl.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,12 +7,11 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <fcntl.h>
 
-#include "eval.h"
 #include "../ast/ast.h"
 #include "../built_in/echo.h"
 #include "../built_in/true_false.h"
+#include "eval.h"
 
 static int eval_redir_less(struct ast_redir *ast_redir)
 {
@@ -191,7 +191,9 @@ static int eval_redir_dgreat(struct ast_redir *ast_redir)
 static int eval_redir_lessand(struct ast_redir *ast_redir)
 {
     int fdtemp = -1;
-    int fd = dup2(fdtemp,ast_redir->fd);
+
+    int fd = dup2(fdtemp, ast_redir->fd);
+
     if (fd == -1)
     {
         return 1;
