@@ -33,6 +33,7 @@ enum parser_status parse_shell_command(struct ast **res, struct lexer *lexer)
 enum parser_status parse_simple_command(struct ast **res, struct lexer *lexer)
 {
     struct token tok = lexer_peek(lexer);
+<<<<<<< HEAD
     struct ast *result = NULL;
     struct ast *node = NULL;
 
@@ -109,4 +110,30 @@ enum parser_status parse_simple_command(struct ast **res, struct lexer *lexer)
     *res = result;
 
     return P_OK;
+=======
+
+    if (tok.type == TOKEN_WORD)
+    {
+        tok = lexer_pop(lexer);
+
+        struct ast *node = ast_new(AST_COMMAND);
+
+        if (ast_cmd_push(node, tok.value))
+        {
+            ast_free(node);
+            return P_KO;
+        }
+
+        *res = node;
+
+        while (parse_element(res, lexer) == P_OK)
+        {
+            continue;
+        }
+
+        return P_OK;
+    }
+
+    return P_KO;
+>>>>>>> 1c5a7cd ([REFACTOR][PARSER] cuts down parser into smaller files)
 }

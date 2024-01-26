@@ -167,15 +167,23 @@ enum parser_status parse_element(struct ast **res, struct lexer *lexer)
     {
         tok = lexer_pop(lexer);
 
+<<<<<<< HEAD
         struct ast *ast = ast_new(AST_WORD);
 
         struct ast_word *ast_word = &ast->data.ast_word;
 
         ast_word->arg = tok.value;
         *res = ast;
+=======
+        ast_cmd_push(*res, tok.value);
+>>>>>>> 1c5a7cd ([REFACTOR][PARSER] cuts down parser into smaller files)
 
         return P_OK;
     }
 
+<<<<<<< HEAD
     return parse_redirection(res, lexer);
+=======
+    return P_KO;
+>>>>>>> 1c5a7cd ([REFACTOR][PARSER] cuts down parser into smaller files)
 }
