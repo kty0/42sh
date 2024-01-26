@@ -93,7 +93,6 @@ enum parser_status parse_pipeline(struct ast **res, struct lexer *lexer)
     return P_OK;
 }
 
-
 enum parser_status parse_redirection(struct ast **res, struct lexer *lexer)
 {
     struct token tok = lexer_peek(lexer);

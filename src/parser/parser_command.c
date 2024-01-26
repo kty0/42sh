@@ -30,7 +30,7 @@ enum parser_status parse_shell_command(struct ast **res, struct lexer *lexer)
         : P_KO;
 }
 
- enum parser_status parse_simple_command(struct ast **res, struct lexer *lexer)
+enum parser_status parse_simple_command(struct ast **res, struct lexer *lexer)
 {
     struct token tok = lexer_peek(lexer);
     struct ast *result = NULL;
