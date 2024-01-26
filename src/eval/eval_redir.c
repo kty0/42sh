@@ -90,7 +90,6 @@ static int eval_redir_great(struct ast_redir *ast_redir)
     return res;
 }
 
-
 static int eval_redir_lessgreat(struct ast_redir *ast_redir)
 
 {

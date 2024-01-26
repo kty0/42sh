@@ -7,7 +7,6 @@
 
 #include "../lexer/token.h"
 #include "ast.h"
-#include "../lexer/token.h"
 
 struct ast *ast_new_cmd(void)
 {
