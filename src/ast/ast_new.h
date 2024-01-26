@@ -2,6 +2,7 @@
 #define AST_NEW_H
 
 #include "ast.h"
+#include "../lexer/token.h"
 
 struct ast *ast_new(enum ast_type type);
 
@@ -21,7 +22,7 @@ struct ast *ast_new_until(void);
 
 struct ast *ast_new_ope(void);
 
-struct ast *ast_new_redir(void);
+struct ast *ast_new_redir(enum token_type type);
 
 struct ast *ast_new_word(void);
 

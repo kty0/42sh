@@ -90,7 +90,9 @@ static int eval_redir_great(struct ast_redir *ast_redir)
     return res;
 }
 
+
 static int eval_redir_lessgreat(struct ast_redir *ast_redir)
+
 {
     int fd = open(ast_redir->file, O_RDWR | O_CREAT | O_TRUNC, 0644);
     if (fd == -1)
@@ -186,17 +188,53 @@ static int eval_redir_dgreat(struct ast_redir *ast_redir)
     return res;
 }
 
+static int eval_redir_lessand(struct ast_redir *ast_redir)
+{
+    int fdtemp = -1;
+    int fd = dup2(fdtemp,ast_redir->fd);
+    if (fd == -1)
+    {
+        return 1;
+    }
+    int res;
+    if (ast_redir->right == NULL)
+    {
+        res = eval(ast_redir->left);
+    }
+    else
+    {
+        res = eval(ast_redir->right);
+    }
+    if (dup2(fd, ast_redir->fd) == -1)
+    {
+        // need to handle error
+        close(fd);
+        return 1;
+    }
+
+    close(fd);
+
+    return res;
+}
+
+/*
+static int eval_redir_greatand(struct ast_redir *ast_redir)
+{
+    //TODO
+}
+*/
+
 int eval_redir(struct ast *ast)
 {
     struct ast_redir *ast_redir = &ast->data.ast_redir;
 
-    if (ast_redir->type == LESS)
+    if (ast_redir->type == LESS || ast_redir->type == CLOBBER)
     {
         return eval_redir_less(ast_redir);
     }
     else if (ast_redir->type == GREAT)
     {
-        return eval_redir_greater(ast_redir);
+        return eval_redir_great(ast_redir);
     }
     else if (ast_redir->type == LESSAND)
     {
@@ -204,7 +242,7 @@ int eval_redir(struct ast *ast)
     }
     else if (ast_redir->type == GREATAND)
     {
-        return eval_redir_greatand(ast_redir);
+        return eval_redir_great(ast_redir);
     }
     else if (ast_redir->type == LESSGREAT)
     {
@@ -213,10 +251,6 @@ int eval_redir(struct ast *ast)
     else if (ast_redir->type == DGREAT)
     {
         return eval_redir_dgreat(ast_redir);
-    }
-    else if (ast_redir->type == CLOBBER)
-    {
-        return eval_redir_clobber(ast_redir);
     }
     else
     {

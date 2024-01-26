@@ -5,4 +5,8 @@
 
 enum parser_status parse_pipeline(struct ast **res, struct lexer *lexer);
 
+enum parser_status parse_redirection(struct ast **res, struct lexer *lexer);
+
+enum parser_status parse_prefix(struct ast **res, struct lexer *lexer);
+
 #endif /* !PARSER_IO_H */

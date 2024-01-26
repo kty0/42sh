@@ -228,6 +228,7 @@ void ast_print(struct ast *ast)
         break;
     case AST_OPERATOR:
         print_ope(ast);
+        break;
     case AST_REDIRECTION:
         print_redir(ast);
         break;
