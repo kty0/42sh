@@ -5,6 +5,11 @@
 
 static int set_flags(char *option, int *newline, int *enable)
 {
+    if (option == NULL)
+    {
+        return 0;
+    }
+
     if (option[0] == '-')
     {
         for (int i = 1; option[i] != '\0'; i++)

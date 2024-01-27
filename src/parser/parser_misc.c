@@ -86,6 +86,7 @@ enum parser_status parse_and_or(struct ast **res, struct lexer *lexer)
 
         struct ast_ope *new_ope = &new_ast->data.ast_ope;
 
+        new_ope->type = tok.type == TOKEN_AND_IF ? AND : OR;
         new_ope->left = *res;
 
         ast_ope->right = new_ast;
