@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../lexer/token.h"
 #include "ast.h"
 
 struct ast *ast_new_cmd(void)
@@ -128,6 +127,6 @@ struct ast *ast_new(enum ast_type type)
     case AST_WORD:
         return ast_new_basic(type);
     default:
-        errx(1, "failed to recognize this new ast type");
+        return NULL;
     }
 }

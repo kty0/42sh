@@ -11,6 +11,4 @@ enum side
 
 int eval(struct ast *ast);
 
-int eval_redir(struct ast *ast);
-
 #endif /* !EVAL_H */

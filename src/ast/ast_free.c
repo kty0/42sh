@@ -106,17 +106,6 @@ static void ast_free_ope(struct ast *ast)
     free(ast);
 }
 
-static void ast_free_redir(struct ast *ast)
-{
-    struct ast_redir *ast_redir = &ast->data.ast_redir;
-
-    ast_free(ast_redir->left);
-    ast_free(ast_redir->right);
-
-    free(ast_redir->file);
-    free(ast);
-}
-
 void ast_free(struct ast *ast)
 {
     if (ast == NULL)
@@ -149,9 +138,6 @@ void ast_free(struct ast *ast)
         break;
     case AST_OPERATOR:
         ast_free_ope(ast);
-        break;
-    case AST_REDIRECTION:
-        ast_free_redir(ast);
         break;
     default:
         errx(2, "failed to free the AST");
