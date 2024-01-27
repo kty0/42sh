@@ -1,0 +1,1 @@
+echo Gible && echo Kirlia
