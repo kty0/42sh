@@ -1,0 +1,2 @@
+echo Glaceon \
+    Zekrom

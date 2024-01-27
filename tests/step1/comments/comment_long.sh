@@ -1,0 +1,1 @@
+#Pokémon are fictional creatures with diverse abilities and characteristics that inhabit the Pokémon world, captivating trainers who seek to catch, train, and battle them in the pursuit of becoming Pokémon Masters.
