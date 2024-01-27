@@ -94,7 +94,7 @@ testcase_redir()
         err_diff=0
     fi
 
-    if [ $err_diff -eq 1 ] || [ $xtest1 -eq $xref1 ] || [ $xtest2 -eq $xref2 ] || [ $code1 -eq 1 ] || [ $code2 -eq 1 ] || [ $exit_code_ref -ne $exit_code_test ] || [ $err_diff -eq 1 ]; then
+    if [ $exit_diff -eq 1 ] || [ $xtest1 -ne $xref1 ] || [ $xtest2 -ne $xref2 ] || [ $code1 -eq 1 ] || [ $code2 -eq 1 ] || [ $exit_code_ref -ne $exit_code_test ] || [ $err_diff -eq 1 ]; then
         echo -e "${RED}[T-T]${NC} $1"
         if [ $do_print -eq 0 ]; then
             cat "$DIFF_OUT"
