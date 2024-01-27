@@ -164,28 +164,14 @@ enum parser_status parse_element(struct ast **res, struct lexer *lexer)
 {
     struct token tok = lexer_peek(lexer);
 
-    /* Either it could be a redirection which is parsed and returned */
-
-    if (tok.type != TOKEN_WORD)
+    if (tok.type == TOKEN_WORD)
     {
-        return parse_redirection(res, lexer);
+        tok = lexer_pop(lexer);
+
+        ast_cmd_push(*res, tok.value);
+
+        return P_OK;
     }
 
-    /* Either it's a word which is also parsed and returned */
-
-    tok = lexer_pop(lexer);
-
-    struct ast *ast = ast_new(AST_WORD);
-
-    struct ast_word *ast_word = &ast->data.ast_word;
-
-    ast_word->arg = tok.value;
-    *res = ast;
-
-    return P_OK;
-}
-
-enum parser_status parse_prefix(struct ast **res, struct lexer *lexer)
-{
-    return parse_redirection(res, lexer);
+    return P_KO;
 }

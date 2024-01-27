@@ -239,9 +239,6 @@ int eval(struct ast *ast)
     {
         return eval_ope(ast);
     }
-    else if (ast->type == AST_REDIRECTION)
-    {
-        return eval_redir(ast);
-    }
+
     err(1, "invalid node in the AST");
 }
