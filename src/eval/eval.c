@@ -179,11 +179,21 @@ static int eval_ope(struct ast *ast)
     {
         if (ast_ope->type == AND)
         {
-            return !res && !eval(ast_ope->right) ? 0 : 1;
+            if (res)
+            {
+                return res;
+            }
+
+            return eval(ast_ope->right);
         }
         else
         {
-            return !res || !eval(ast_ope->right) ? 0 : 1;
+            if (!res)
+            {
+                return res;
+            }
+
+            return eval(ast_ope->right);
         }
     }
 
