@@ -15,8 +15,8 @@
 
 enum parser_status parse_command(struct ast **res, struct lexer *lexer)
 {
-    return parse_simple_command(res, lexer) == P_OK
-            || parse_shell_command(res, lexer) == P_OK
+    return parse_shell_command(res, lexer) == P_OK
+            || (parse_simple_command(res, lexer) == P_OK && *res != NULL)
         ? P_OK
         : P_KO;
 }
@@ -47,6 +47,8 @@ enum parser_status parse_shell_command(struct ast **res, struct lexer *lexer)
  */
 enum parser_status parse_simple_command(struct ast **res, struct lexer *lexer)
 {
+    *res = NULL;
+
     /* Creating the result node being the root and the node node being
      * the last child */
 

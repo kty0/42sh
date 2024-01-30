@@ -61,7 +61,6 @@ enum parser_status parse_rule_if(struct ast **res, struct lexer *lexer)
     if (tok.type == TOKEN_FI)
     {
         tok = lexer_pop_free(lexer);
-
         return P_OK;
     }
 
@@ -75,6 +74,7 @@ enum parser_status parse_rule_if(struct ast **res, struct lexer *lexer)
 
     if (tok.type != TOKEN_FI)
     {
+        ast_free(node_if);
         return P_KO;
     }
 
