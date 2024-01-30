@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "../ast/ast.h"
 #include "../ast/ast_new.h"
@@ -17,7 +18,7 @@ enum parser_status parse_rule_while(struct ast **res, struct lexer *lexer)
 {
     struct token tok = lexer_peek(lexer);
 
-    if (tok.type != TOKEN_WHILE)
+    if (tok.type != TOKEN_WORD || strcmp(tok.value, "while"))
     {
         return P_KO;
     }
@@ -37,8 +38,9 @@ enum parser_status parse_rule_while(struct ast **res, struct lexer *lexer)
 
     tok = lexer_peek(lexer);
 
-    if (tok.type != TOKEN_DO)
+    if (tok.type != TOKEN_WORD || strcmp(tok.value, "do"))
     {
+        ast_free(ast);
         return P_KO;
     }
 
@@ -46,6 +48,7 @@ enum parser_status parse_rule_while(struct ast **res, struct lexer *lexer)
 
     if (parse_compound_list(res, lexer) != P_OK)
     {
+        ast_free(ast);
         return P_KO;
     }
 
@@ -53,8 +56,9 @@ enum parser_status parse_rule_while(struct ast **res, struct lexer *lexer)
 
     tok = lexer_peek(lexer);
 
-    if (tok.type != TOKEN_DONE)
+    if (tok.type != TOKEN_WORD || strcmp(tok.value, "done"))
     {
+        ast_free(ast);
         return P_KO;
     }
 
@@ -69,7 +73,7 @@ enum parser_status parse_rule_until(struct ast **res, struct lexer *lexer)
 {
     struct token tok = lexer_peek(lexer);
 
-    if (tok.type != TOKEN_UNTIL)
+    if (tok.type != TOKEN_WORD || strcmp(tok.value, "until"))
     {
         return P_KO;
     }
@@ -89,7 +93,7 @@ enum parser_status parse_rule_until(struct ast **res, struct lexer *lexer)
 
     tok = lexer_peek(lexer);
 
-    if (tok.type != TOKEN_DO)
+    if (tok.type != TOKEN_WORD || strcmp(tok.value, "do"))
     {
         ast_free(ast);
         return P_KO;
@@ -107,7 +111,7 @@ enum parser_status parse_rule_until(struct ast **res, struct lexer *lexer)
 
     tok = lexer_peek(lexer);
 
-    if (tok.type != TOKEN_DONE)
+    if (tok.type != TOKEN_WORD || strcmp(tok.value, "done"))
     {
         ast_free(ast);
         return P_KO;

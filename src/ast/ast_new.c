@@ -26,6 +26,12 @@ struct ast *ast_new_cmd(void)
         errx(1, "failed to create a new cmd ast");
     }
 
+    ast_cmd->exps = calloc(1, sizeof(enum exp_type *));
+    if (ast_cmd->exps == NULL)
+    {
+        errx(1, "failed to create a new cmd ast");
+    }
+
     return new;
 }
 

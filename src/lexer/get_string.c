@@ -1,18 +1,22 @@
 #include <ctype.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "lexer.h"
+#include "token.h"
 
 static struct token tokens[] = {
-    { TOKEN_SEMICOLON, ";" }, { TOKEN_NOT, "!" },
-    { TOKEN_PIPE, "|" },      { TOKEN_AND_IF, "&&" },
-    { TOKEN_OR_IF, "||" },    { TOKEN_NEWLINE, "\n" },
-    { TOKEN_DGREAT, ">>" },   { TOKEN_LESSAND, "<&" },
-    { TOKEN_GREATAND, ">&" }, { TOKEN_LESSGREAT, "<>" },
-    { TOKEN_CLOBBER, ">|" },  { TOKEN_GREAT, ">" },
-    { TOKEN_LESS, "<" }
+    { TOKEN_SEMICOLON, NORMAL, ";" }, { TOKEN_NOT, NORMAL, "!" },
+    { TOKEN_PIPE, NORMAL, "|" },      { TOKEN_AND_IF, NORMAL, "&&" },
+    { TOKEN_OR_IF, NORMAL, "||" },    { TOKEN_NEWLINE, NORMAL, "\n" },
+    { TOKEN_DGREAT, NORMAL, ">>" },   { TOKEN_LESSAND, NORMAL, "<&" },
+    { TOKEN_GREATAND, NORMAL, ">&" }, { TOKEN_LESSGREAT, NORMAL, "<>" },
+    { TOKEN_CLOBBER, NORMAL, ">|" },  { TOKEN_GREAT, NORMAL, ">" },
+    { TOKEN_LESS, NORMAL, "<" }
 };
+
+static int len = 0;
 
 static int check_quote(char c)
 {
@@ -25,13 +29,13 @@ static int check_operator(char c)
         || c == '>';
 }
 
-void append_char(char **str, int *len, char c)
+void append_char(char **str, char c)
 {
-    *str = realloc(*str, *len + 1);
-    (*str)[(*len)++] = c;
+    *str = realloc(*str, len + 1);
+    (*str)[len++] = c;
 }
 
-static int existing_operator(char *str, char c, int len)
+static int existing_operator(char *str, char c)
 {
     char *op = malloc((len + 2) * sizeof(char));
     strncpy(op, str, len);
@@ -49,8 +53,9 @@ static int existing_operator(char *str, char c, int len)
     return 0;
 }
 
-static int simple_quote(char **str, char *c, struct lexer *lexer, int *len)
+static int simple_quote(char **str, char *c, struct lexer *lexer)
 {
+    append_char(str, *c);
     *c = fgetc(lexer->file);
     while (*c != '\'')
     {
@@ -58,15 +63,17 @@ static int simple_quote(char **str, char *c, struct lexer *lexer, int *len)
         {
             return 0;
         }
-        append_char(str, len, *c);
+        append_char(str, *c);
         *c = fgetc(lexer->file);
     }
+    append_char(str, *c);
     return 1;
 }
 
-static int double_quote(char **str, char *c, struct lexer *lexer, int *len)
+static int double_quote(char **str, char *c, struct lexer *lexer)
 {
     // to be reviewed during the implementation of variables
+    append_char(str, *c);
     *c = fgetc(lexer->file);
     while (*c != '"')
     {
@@ -74,41 +81,47 @@ static int double_quote(char **str, char *c, struct lexer *lexer, int *len)
         {
             return 0;
         }
-        append_char(str, len, *c);
+        append_char(str, *c);
         *c = fgetc(lexer->file);
     }
+    append_char(str, *c);
     return 1;
 }
 
-static int backslash(struct lexer *lexer, char *c, char **str, int *len)
+static int backslash(struct lexer *lexer, char *c, char **str)
 {
+    append_char(str, *c);
     *c = fgetc(lexer->file);
-    if (*c == '\n')
-    {
-        *c = fgetc(lexer->file);
-    }
     if (*c == EOF)
     {
         return 0;
     }
-    if (!isblank(*c))
-    {
-        append_char(str, len, *c);
-    }
+    append_char(str, *c);
     return 1;
 }
 
-static int rule_4(char **str, char *c, struct lexer *lexer, int *len)
+static int rule_4(char **str, char *c, struct lexer *lexer, enum exp_type *exp)
 {
     if (*c == '\'')
     {
-        return simple_quote(str, c, lexer, len);
+        if (simple_quote(str, c, lexer))
+        {
+            *exp = QUOTE;
+            return 1;
+        }
+        return 0;
     }
-    else if (*c == '\\')
+    else if (*c == '\\' && backslash(lexer, c, str))
     {
-        return backslash(lexer, c, str, len);
+        *exp = BACKSLASH;
+        return 1;
     }
-    return double_quote(str, c, lexer, len);
+    else if (double_quote(str, c, lexer))
+    {
+        *exp = DQUOTE;
+        return 1;
+    }
+    return 0;
 }
 
 static int rule_9(struct lexer *lexer, char *c)
@@ -126,26 +139,26 @@ static char *free_error(char *str)
     return "error";
 }
 
-char *get_string(struct lexer *lexer, char *c)
+char *get_string(struct lexer *lexer, char *c, enum exp_type *exp)
 {
     // if segfault check append_char
     char *str = NULL;
-    int len = 0;
+    len = 0;
     while (*c != EOF)
     {
         if (len && check_operator(str[len - 1])
-            && existing_operator(str, *c, len)) // rule 2
+            && existing_operator(str, *c)) // rule 2
         {
-            append_char(&str, &len, *c);
+            append_char(&str, *c);
         }
         else if (len && check_operator(str[len - 1])
-                 && !existing_operator(str, *c, len)) // rule 3
+                 && !existing_operator(str, *c)) // rule 3
         {
             break;
         }
         else if (check_quote(*c)) // rule 4
         {
-            if (!rule_4(&str, c, lexer, &len))
+            if (!rule_4(&str, c, lexer, exp))
             {
                 return free_error(str);
             }
@@ -161,7 +174,7 @@ char *get_string(struct lexer *lexer, char *c)
                 break;
             }
         }
-        else if (*c == '#')
+        else if (*c == '#' && !len)
         {
             if (!rule_9(lexer, c))
             {
@@ -170,7 +183,7 @@ char *get_string(struct lexer *lexer, char *c)
         }
         else // rule 8 & 10
         {
-            append_char(&str, &len, *c);
+            append_char(&str, *c);
         }
         *c = fgetc(lexer->file);
     }
@@ -179,6 +192,6 @@ char *get_string(struct lexer *lexer, char *c)
         free(str);
         return NULL;
     }
-    append_char(&str, &len, '\0');
+    append_char(&str, '\0');
     return str;
 }

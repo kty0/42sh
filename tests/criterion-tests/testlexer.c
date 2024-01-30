@@ -187,11 +187,11 @@ Test(lexer_new, tricky, .init = cr_redirect_stdout)
     cr_assert_not_null(l, "lexer shouldn't be null");
 
     struct token tokens[] = {
-        { TOKEN_IF, NULL },           { TOKEN_THEN, NULL },
-        { TOKEN_ELSE, NULL },         { TOKEN_FI, NULL },
-        { TOKEN_SEMICOLON, NULL },    { TOKEN_WORD, "word1" },
-        { TOKEN_WORD, "\"quoted\"" }, { TOKEN_SEMICOLON, NULL },
-        { TOKEN_WORD, "word2" },      { TOKEN_EOF, NULL },
+        { TOKEN_IF, NORMAL, NULL },           { TOKEN_THEN, NORMAL, NULL },
+        { TOKEN_ELSE, NORMAL, NULL },         { TOKEN_FI, NORMAL, NULL },
+        { TOKEN_SEMICOLON, NORMAL, NULL },    { TOKEN_WORD, NORMAL, "word1" },
+        { TOKEN_WORD, NORMAL, "\"quoted\"" }, { TOKEN_SEMICOLON, NORMAL, NULL },
+        { TOKEN_WORD, NORMAL, "word2" },      { TOKEN_EOF, NORMAL, NULL },
     };
 
     for (long unsigned int i = 0; i < sizeof(tokens) / sizeof(tokens[0]); i++)
@@ -216,11 +216,11 @@ Test(lexer_new, trickier, .init = cr_redirect_stdout)
     cr_assert_not_null(l, "lexer shouldn't be null");
 
     struct token tokens[] = {
-        { TOKEN_IF, NULL },           { TOKEN_THEN, NULL },
-        { TOKEN_ELSE, NULL },         { TOKEN_FI, NULL },
-        { TOKEN_SEMICOLON, NULL },    { TOKEN_WORD, "word1" },
-        { TOKEN_WORD, "\"quoted\"" }, { TOKEN_SEMICOLON, NULL },
-        { TOKEN_WORD, "word2" },      { TOKEN_EOF, NULL },
+        { TOKEN_IF, NORMAL, NULL },           { TOKEN_THEN, NORMAL, NULL },
+        { TOKEN_ELSE, NORMAL, NULL },         { TOKEN_FI, NORMAL, NULL },
+        { TOKEN_SEMICOLON, NORMAL, NULL },    { TOKEN_WORD, NORMAL, "word1" },
+        { TOKEN_WORD, NORMAL, "\"quoted\"" }, { TOKEN_SEMICOLON, NORMAL, NULL },
+        { TOKEN_WORD, NORMAL, "word2" },      { TOKEN_EOF, NORMAL, NULL },
     };
 
     for (long unsigned int i = 0; i < sizeof(tokens) / sizeof(tokens[0]); i++)

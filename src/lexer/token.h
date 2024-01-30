@@ -5,11 +5,7 @@
 
 enum token_type
 {
-    TOKEN_IF, // "if"
-    TOKEN_THEN, // "then"
-    TOKEN_ELIF, // "elif"
-    TOKEN_ELSE, // "else"
-    TOKEN_FI, // "fi"
+    /* Used tokens */
     TOKEN_SEMICOLON, // ";"
     TOKEN_NEWLINE, // "\n"
     TOKEN_WORD, // words
@@ -17,12 +13,6 @@ enum token_type
     TOKEN_EOF, // end of file
     TOKEN_NOT, // !
     TOKEN_PIPE, // pipe
-    TOKEN_WHILE, // while
-    TOKEN_DO, // do
-    TOKEN_DONE, // done
-    TOKEN_UNTIL, // until
-    TOKEN_FOR, // for
-    TOKEN_IN, // in
     TOKEN_AND_IF, // and
     TOKEN_OR_IF, // or
     TOKEN_LESS, // <
@@ -32,12 +22,36 @@ enum token_type
     TOKEN_GREATAND, // >&
     TOKEN_LESSGREAT, //<>
     TOKEN_CLOBBER, // >|
-    TOKEN_IONUMBER,
+    TOKEN_IONUMBER, // io number
+
+    /* Unused tokens */
+    TOKEN_IF, // "if"
+    TOKEN_THEN, // "then"
+    TOKEN_ELIF, // "elif"
+    TOKEN_ELSE, // "else"
+    TOKEN_FI, // "fi"
+    TOKEN_WHILE, // while
+    TOKEN_DO, // do
+    TOKEN_DONE, // done
+    TOKEN_UNTIL, // until
+    TOKEN_FOR, // for
+    TOKEN_IN, // in
+};
+
+enum exp_type
+{
+    NORMAL,
+    QUOTE,
+    DQUOTE,
+    BACKSLASH,
+    DOLLAR,
+    BQUOTE,
 };
 
 struct token
 {
     enum token_type type; // The kind of token
+    enum exp_type exp;
     char *value; // If the token is a number, its value
 };
 

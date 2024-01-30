@@ -1,6 +1,8 @@
 #ifndef AST_H
 #define AST_H
 
+#include "../lexer/token.h"
+
 enum ast_type
 {
     AST_COMMAND,
@@ -36,7 +38,8 @@ enum redir_type
 
 struct ast_cmd
 {
-    char **args; // NULL terminated arguments list
+    enum exp_type **exps; // NULL terminated exp_type array
+    char **args; // NULL terminated arguments array
 };
 
 struct ast_if
@@ -92,6 +95,7 @@ struct ast_redir
 
 struct ast_word
 {
+    enum exp_type exp;
     char *arg;
 };
 
@@ -119,7 +123,7 @@ struct ast
 
 /* our pretty functions */
 
-int ast_cmd_push(struct ast *ast, char *arg);
+int ast_cmd_push(struct ast *ast, char *arg, enum exp_type exp);
 
 int ast_list_push(struct ast *ast, struct ast *child);
 

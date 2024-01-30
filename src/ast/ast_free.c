@@ -16,8 +16,17 @@ static void ast_free_cmd(struct ast *ast)
             free(ast_cmd->args[i]);
         }
     }
-
     free(ast_cmd->args);
+
+    if (ast_cmd->exps != NULL)
+    {
+        for (int i = 0; ast_cmd->exps[i] != NULL; i++)
+        {
+            free(ast_cmd->exps[i]);
+        }
+    }
+    free(ast_cmd->exps);
+
     free(ast);
 }
 

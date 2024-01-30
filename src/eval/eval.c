@@ -53,7 +53,10 @@ static int eval_cmd(struct ast *ast)
 
         if (pid == 0)
         {
-            errx(execvp(ast_cmd->args[0], ast_cmd->args), "missing command");
+            if (execvp(ast_cmd->args[0], ast_cmd->args) == -1)
+            {
+                errx(127, "missing command");
+            }
         }
 
         int wstatus;

@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
     }
 
     struct lexer *lexer = lexer_new(fd);
-    struct token token = lexer_pop(lexer);
+    struct token token = lexer->current_tok;
 
     while (token.type != TOKEN_ERROR && token.type != TOKEN_EOF)
     {
@@ -52,7 +52,8 @@ int main(int argc, char *argv[])
             printf("%s\n", tab[token.type]);
 
         free_token(token);
-        token = lexer_pop(lexer);
+        lexer_pop(lexer);
+        token = lexer->current_tok;
     }
     free_token(token);
     if (token.type == TOKEN_ERROR)

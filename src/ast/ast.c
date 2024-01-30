@@ -5,7 +5,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int ast_cmd_push(struct ast *ast, char *arg)
+#include "../lexer/token.h"
+
+int ast_cmd_push(struct ast *ast, char *arg, enum exp_type exp)
 {
     struct ast_cmd *ast_cmd = &ast->data.ast_cmd;
 
@@ -25,6 +27,27 @@ int ast_cmd_push(struct ast *ast, char *arg)
 
     ast_cmd->args[len - 1] = arg;
     ast_cmd->args[len] = NULL;
+
+    len = 0;
+    while (ast_cmd->exps[len] != NULL)
+    {
+        len++;
+    }
+    len++;
+
+    enum exp_type **tmp2 =
+        realloc(ast_cmd->exps, sizeof(enum exp_type *) * (len + 1));
+    if (tmp2 == NULL)
+    {
+        return 1;
+    }
+    ast_cmd->exps = tmp2;
+
+    enum exp_type *new_exp = malloc(sizeof(enum exp_type));
+    *new_exp = exp;
+
+    ast_cmd->exps[len - 1] = new_exp;
+    ast_cmd->exps[len] = NULL;
 
     return 0;
 }
