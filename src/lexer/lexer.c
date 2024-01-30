@@ -24,6 +24,8 @@ void lexer_free(struct lexer *lexer)
     free_token(lexer->current_tok);
     free_token(lexer->next_tok);
     free(lexer);
+    free_token(lexer->current_tok);
+    free_token(lexer->next_tok);
 }
 
 static int check_solely_number(char *str)
