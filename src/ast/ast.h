@@ -13,12 +13,25 @@ enum ast_type
     AST_WHILE,
     AST_UNTIL,
     AST_OPERATOR,
+    AST_WORD,
+    AST_REDIRECTION,
 };
 
 enum ope_type
 {
     AND,
     OR
+};
+
+enum redir_type
+{
+    LESS,
+    GREAT,
+    LESSAND,
+    GREATAND,
+    LESSGREAT,
+    DGREAT,
+    CLOBBER,
 };
 
 /* definition of the ast nodes */
@@ -98,6 +111,8 @@ union ast_union
     struct ast_while ast_while;
     struct ast_until ast_until;
     struct ast_ope ast_ope;
+    struct ast_redir ast_redir;
+    struct ast_word ast_word;
 };
 
 struct ast

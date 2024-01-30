@@ -105,26 +105,30 @@ enum parser_status parse_simple_command(struct ast **res, struct lexer *lexer)
      * the last child */
 
     struct token tok = lexer_peek(lexer);
+    struct ast *result = NULL;
+    struct ast *node = NULL;
 
-    if (tok.type == TOKEN_WORD)
+    /* Parsing early redirections */
+
+    while (parse_prefix(res, lexer) != P_KO)
     {
-        tok = lexer_pop(lexer);
-
-        struct ast *node = ast_new(AST_COMMAND);
-
-        if (ast_cmd_push(node, tok.value))
+        if (!node)
         {
-            ast_free(node);
-            return P_KO;
+            node = *res;
+            result = *res;
         }
-
-        *res = node;
-
-        while (parse_element(res, lexer) == P_OK)
+        else
         {
-            continue;
+            struct ast_redir *ast_redir = &node->data.ast_redir;
+            ast_redir->right = *res;
+            node = *res;
         }
+    }
 
+    tok = lexer_peek(lexer);
+
+    if (tok.type != TOKEN_WORD)
+    {
         return P_OK;
     }
 

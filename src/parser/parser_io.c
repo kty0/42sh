@@ -92,3 +92,75 @@ enum parser_status parse_pipeline(struct ast **res, struct lexer *lexer)
 
     return P_OK;
 }
+
+static int is_redir(enum token_type type)
+{
+    return type == TOKEN_LESS || type == TOKEN_GREAT || type == TOKEN_LESSAND
+        || type == TOKEN_GREATAND || type == TOKEN_LESSGREAT
+        || type == TOKEN_DGREAT || type == TOKEN_CLOBBER;
+}
+
+enum parser_status parse_redirection(struct ast **res, struct lexer *lexer)
+{
+    struct token tok = lexer_peek(lexer);
+
+    int io_nb = -1;
+
+    /* Checking for optionnal io number */
+
+    if (tok.type == TOKEN_IONUMBER)
+    {
+        io_nb = atoi(tok.value);
+        lexer_pop_free(lexer);
+    }
+
+    tok = lexer_peek(lexer);
+
+    /* Checking for the presence of the redirection */
+
+    if (!is_redir(tok.type))
+    {
+        return P_KO;
+    }
+
+    tok = lexer_pop_free(lexer);
+
+    struct ast *node = ast_new_redir(tok.type);
+    struct ast_redir *ast_redir = &node->data.ast_redir;
+
+    /* Giving the redirectin either its default io number or the given one */
+
+    if (io_nb != -1)
+    {
+        ast_redir->fd = io_nb;
+    }
+    else
+    {
+        if (tok.type == TOKEN_GREAT || tok.type == TOKEN_CLOBBER
+            || tok.type == TOKEN_DGREAT || tok.type == TOKEN_GREATAND)
+        {
+            ast_redir->fd = 1; // stdout
+        }
+        else if (tok.type == TOKEN_LESS || tok.type == TOKEN_LESSGREAT
+                 || tok.type == TOKEN_LESSAND)
+        {
+            ast_redir->fd = 0; // stdin
+        }
+    }
+
+    /* Checking for the mandatory file to redirect to */
+
+    tok = lexer_peek(lexer);
+
+    if (tok.type != TOKEN_WORD)
+    {
+        return P_KO;
+    }
+
+    tok = lexer_pop(lexer);
+    ast_redir->file = tok.value;
+
+    *res = node;
+
+    return P_OK;
+}
