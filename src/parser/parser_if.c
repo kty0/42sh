@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "../ast/ast.h"
 #include "../ast/ast_new.h"
@@ -17,7 +18,7 @@ enum parser_status parse_rule_if(struct ast **res, struct lexer *lexer)
 {
     struct token tok = lexer_peek(lexer);
 
-    if (tok.type != TOKEN_IF)
+    if (tok.type != TOKEN_WORD || strcmp(tok.value, "if"))
     {
         return P_KO;
     }
@@ -38,7 +39,7 @@ enum parser_status parse_rule_if(struct ast **res, struct lexer *lexer)
 
     tok = lexer_peek(lexer);
 
-    if (tok.type != TOKEN_THEN)
+    if (tok.type != TOKEN_WORD || strcmp(tok.value, "then"))
     {
         ast_free(node_if);
         return P_KO;
@@ -58,7 +59,7 @@ enum parser_status parse_rule_if(struct ast **res, struct lexer *lexer)
 
     *res = node_if;
 
-    if (tok.type == TOKEN_FI)
+    if (tok.type == TOKEN_WORD && !strcmp(tok.value, "fi"))
     {
         tok = lexer_pop_free(lexer);
         return P_OK;
@@ -72,7 +73,7 @@ enum parser_status parse_rule_if(struct ast **res, struct lexer *lexer)
 
     tok = lexer_peek(lexer);
 
-    if (tok.type != TOKEN_FI)
+    if (tok.type != TOKEN_WORD || strcmp(tok.value, "fi"))
     {
         ast_free(node_if);
         return P_KO;
@@ -91,7 +92,7 @@ enum parser_status parse_else_clause(struct ast **res, struct lexer *lexer)
 
     struct ast *node_if = *res;
 
-    if (tok.type == TOKEN_ELSE)
+    if (tok.type == TOKEN_WORD && !strcmp(tok.value, "else"))
     {
         tok = lexer_pop_free(lexer);
 
@@ -108,7 +109,7 @@ enum parser_status parse_else_clause(struct ast **res, struct lexer *lexer)
             return P_KO;
         }
     }
-    else if (tok.type == TOKEN_ELIF)
+    else if (tok.type == TOKEN_WORD && !strcmp(tok.value, "elif"))
     {
         tok = lexer_pop_free(lexer);
 
@@ -129,7 +130,7 @@ enum parser_status parse_else_clause(struct ast **res, struct lexer *lexer)
 
         tok = lexer_peek(lexer);
 
-        if (tok.type != TOKEN_THEN)
+        if (tok.type != TOKEN_WORD || strcmp(tok.value, "then"))
         {
             return P_KO;
         }
@@ -145,7 +146,8 @@ enum parser_status parse_else_clause(struct ast **res, struct lexer *lexer)
 
         tok = lexer_peek(lexer);
 
-        if (tok.type == TOKEN_ELSE || tok.type == TOKEN_ELIF)
+        if ((tok.type == TOKEN_WORD && !strcmp(tok.value, "else"))
+            || (tok.type == TOKEN_WORD && !strcmp(tok.value, "elif")))
         {
             *res = ast;
 

@@ -28,7 +28,7 @@ static int parse_eval(FILE *stream, enum source source)
 
     int res = 0;
 
-    while (tok.type != TOKEN_EOF)
+    while (tok.type != TOKEN_EOF && tok.type != TOKEN_ERROR)
     {
         if (parse(&ast, lexer) == P_KO)
         {

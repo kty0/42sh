@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
         return 1;
     }
     struct lexer *lexer = lexer_new(file);
-    struct token token = lexer_pop(lexer);
+    struct token token = lexer->current_tok;
 
     while (token.type != TOKEN_NEWLINE && token.type != TOKEN_ERROR
            && token.type != TOKEN_EOF)
@@ -56,7 +56,9 @@ int main(int argc, char *argv[])
             printf("%s\n", tab[token.type]);
 
         free_token(token);
+        token = lexer_peek(lexer);
         token = lexer_pop(lexer);
+        token = lexer->current_tok;
     }
     if (token.type == TOKEN_ERROR)
         printf("ALED\n");

@@ -180,6 +180,7 @@ enum parser_status parse_element(struct ast **res, struct lexer *lexer)
     struct ast_word *ast_word = &ast->data.ast_word;
 
     ast_word->arg = tok.value;
+    ast_word->exp = tok.exp;
     *res = ast;
 
     return P_OK;
