@@ -33,6 +33,7 @@ static int parse_eval(FILE *stream, enum source source)
         if (parse(&ast, lexer) == P_KO)
         {
             lexer_free(lexer);
+            ast_free(ast);
             errx(2, "mmh no gud, parsing failed somehow");
         }
 
