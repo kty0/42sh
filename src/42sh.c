@@ -12,6 +12,7 @@
 #include "lexer/lexer.h"
 #include "parser/parser.h"
 #include "quarantedeuxsh.h"
+#include "domain_expansion/domain_expansion.h"
 
 /**
  *  \brief  From a given source, loops between parsing an expr and evaluating it

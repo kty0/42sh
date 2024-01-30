@@ -19,6 +19,12 @@ struct eval_functions
     int (*eval_funs)(struct ast *ast);
 };
 
+struct function
+{
+    enum ast_type type;
+    int (*fun)(struct ast *ast);
+};
+
 static int eval_if(struct ast *ast)
 {
     struct ast_if *ast_if = &ast->data.ast_if;
@@ -146,6 +152,7 @@ static int eval_pipe(struct ast *ast)
 
     int fds[2];
     if (pipe(fds) == -1)
+   pick 150bed0 Revert "Merge branch '61-feat-parser-ad
     {
         errx(1, "failed to create the pipe");
     }
