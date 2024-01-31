@@ -90,14 +90,19 @@ static int double_quote(char **str, char *c, struct lexer *lexer)
 
 static int backslash(struct lexer *lexer, char *c, char **str)
 {
-    append_char(str, *c);
+    char bs = *c;
     *c = fgetc(lexer->file);
     if (*c == EOF)
     {
         return 0;
     }
-    append_char(str, *c);
-    return 1;
+    if (*c != '\n')
+    {
+        append_char(str, bs);
+        append_char(str, *c);
+        return 1;
+    }
+    return 2;
 }
 
 static int rule_4(char **str, char *c, struct lexer *lexer, enum exp_type *exp)
@@ -111,9 +116,17 @@ static int rule_4(char **str, char *c, struct lexer *lexer, enum exp_type *exp)
         }
         return 0;
     }
-    else if (*c == '\\' && backslash(lexer, c, str))
+    else if (*c == '\\')
     {
-        *exp = BACKSLASH;
+        int exp_bs = backslash(lexer, c, str);
+        if (exp_bs == 1)
+        {
+            *exp = BACKSLASH;
+        }
+        else if (exp_bs == 0)
+        {
+            return 0;
+        }
         return 1;
     }
     else if (double_quote(str, c, lexer))

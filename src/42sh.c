@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "ast/ast.h"
+#include "domain_expansion/domain_expansion.h"
 #include "eval/eval.h"
 #include "lexer/lexer.h"
 #include "parser/parser.h"
@@ -42,7 +43,7 @@ static int parse_eval(FILE *stream, enum source source)
             ast_print(ast);
             puts("");
         }
-
+        expand(ast);
         res = eval(ast);
 
         ast_free(ast);

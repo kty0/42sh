@@ -1,0 +1,24 @@
+lib_LIBRARIES = libdomainexpansion.a libddomainexpansion.a
+
+libdomainexpansion_a_SOURCES =  \
+	domain_expansion.c \
+	domain_expansion.h \
+	domain_traversal.c
+
+libdomainexpansion_a_CPPFLAGS = -I$(top_srcdir)/src
+
+libdomainexpansion_a_CFLAGS = -g -std=c99 -Werror -Wall -Wextra -Wvla -pedantic
+
+libddomainexpansion_a_SOURCES =  \
+	domain_expansion.c \
+	domain_expansion.h \
+	domain_traversal.c
+
+libddomainexpansion_a_CPPFLAGS = -I$(top_srcdir)/src
+
+libddomainexpansion_a_CFLAGS = -g -Og -std=c99 -Werror -Wall -Wextra -Wvla -pedantic
+
+libddomainexpansion_a_LFLAGS = -fsanitize=address
+
+noinst_LIBRARIES = libdomainexpansion.a libddomainexpansion.a
+
