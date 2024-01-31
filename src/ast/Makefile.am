@@ -22,6 +22,6 @@ libdast_a_CPPFLAGS = -I$(top_srcdir)/src
 
 libdast_a_CFLAGS = -g -Og -std=c99 -Werror -Wall -Wextra -Wvla -pedantic
 
-libdast_a_LDFLAGS = -fsanitize=address
+libdast_a_LFLAGS = -fsanitize=address
 
 noinst_LIBRARIES = libast.a libdast.a

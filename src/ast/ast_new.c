@@ -35,19 +35,6 @@ struct ast *ast_new_cmd(void)
     return new;
 }
 
-struct ast *ast_new_if(void)
-{
-    struct ast *new = calloc(1, sizeof(struct ast));
-    if (!new)
-    {
-        errx(1, "failed to create a new if ast");
-    }
-
-    new->type = AST_IF;
-
-    return new;
-}
-
 struct ast *ast_new_list(void)
 {
     struct ast *new = calloc(1, sizeof(struct ast));
@@ -65,71 +52,6 @@ struct ast *ast_new_list(void)
     {
         errx(1, "failed to create a new list ast");
     }
-
-    return new;
-}
-
-struct ast *ast_new_not(void)
-{
-    struct ast *new = calloc(1, sizeof(struct ast));
-    if (new == NULL)
-    {
-        errx(1, "failed to create a new not ast");
-    }
-
-    new->type = AST_NOT;
-
-    return new;
-}
-
-struct ast *ast_new_pipe(void)
-{
-    struct ast *new = calloc(1, sizeof(struct ast));
-    if (new == NULL)
-    {
-        errx(1, "failed to create a new pipe ast");
-    }
-
-    new->type = AST_PIPE;
-
-    return new;
-}
-
-struct ast *ast_new_while(void)
-{
-    struct ast *new = calloc(1, sizeof(struct ast));
-    if (new == NULL)
-    {
-        errx(1, "failed to create a new while ast");
-    }
-
-    new->type = AST_WHILE;
-
-    return new;
-}
-
-struct ast *ast_new_until(void)
-{
-    struct ast *new = calloc(1, sizeof(struct ast));
-    if (new == NULL)
-    {
-        errx(1, "failed to create a new until ast");
-    }
-
-    new->type = AST_UNTIL;
-
-    return new;
-}
-
-struct ast *ast_new_ope(void)
-{
-    struct ast *new = calloc(1, sizeof(struct ast));
-    if (new == NULL)
-    {
-        errx(1, "failed to create a new ope ast");
-    }
-
-    new->type = AST_OPERATOR;
 
     return new;
 }
@@ -176,15 +98,15 @@ struct ast *ast_new_redir(enum token_type type)
     return new;
 }
 
-struct ast *ast_new_word(void)
+struct ast *ast_new_basic(enum ast_type type)
 {
     struct ast *new = calloc(1, sizeof(struct ast));
-    if (new == NULL)
+    if (!new)
     {
-        errx(1, "failed to create a new redir ast");
+        errx(1, "failed to create a new basic ast");
     }
 
-    new->type = AST_WORD;
+    new->type = type;
 
     return new;
 }
@@ -198,19 +120,13 @@ struct ast *ast_new(enum ast_type type)
     case AST_LIST:
         return ast_new_list();
     case AST_IF:
-        return ast_new_if();
     case AST_NOT:
-        return ast_new_not();
     case AST_PIPE:
-        return ast_new_pipe();
     case AST_WHILE:
-        return ast_new_while();
     case AST_UNTIL:
-        return ast_new_until();
     case AST_OPERATOR:
-        return ast_new_ope();
     case AST_WORD:
-        return ast_new_word();
+        return ast_new_basic(type);
     default:
         errx(1, "failed to recognize this new ast type");
     }
