@@ -40,6 +40,48 @@ enum parser_status parse_shell_command(struct ast **res, struct lexer *lexer)
         : P_KO;
 }
 
+static void parse_elements_loop(struct ast **res, struct lexer *lexer,
+                                struct ast **ast_cmd, struct cmd_pack cmd_pack)
+{
+    struct ast **node = cmd_pack.node;
+    struct ast **result = cmd_pack.result;
+
+    while (parse_element(res, lexer) != P_KO)
+    {
+        /* If it's a word it goes in the command */
+
+        if ((*res)->type == AST_WORD)
+        {
+            struct ast_word *word = &(*res)->data.ast_word;
+            ast_cmd_push(*ast_cmd, word->arg, word->exp);
+            free(*res);
+        }
+
+        /* Else it is appended to the tree and the command leaf is moved */
+
+        else
+        {
+            struct ast_redir *ast_redir = &(*res)->data.ast_redir;
+
+            if ((*node)->type == AST_COMMAND)
+            {
+                ast_redir->left = *node;
+                *node = *res;
+                *result = *res;
+            }
+            else
+            {
+                struct ast_redir *old_node = &(*node)->data.ast_redir;
+
+                ast_redir->left = old_node->left;
+                old_node->right = *res;
+                old_node->left = NULL;
+                *node = *res;
+            }
+        }
+    }
+}
+
 /* Unintuitively parsing a not so simple command:
  *
  * architecture of the command shall be a degenerated tree with redirections
@@ -116,42 +158,9 @@ enum parser_status parse_simple_command(struct ast **res, struct lexer *lexer)
 
     /* Parsing the following elements */
 
-    tok = lexer_peek(lexer);
+    struct cmd_pack cmd_pack = { .node = &node, .result = &result };
 
-    while (parse_element(res, lexer) != P_KO)
-    {
-        /* If it's a word it goes in the command */
-
-        if ((*res)->type == AST_WORD)
-        {
-            struct ast_word *word = &(*res)->data.ast_word;
-            ast_cmd_push(ast_cmd, word->arg, word->exp);
-            free(*res);
-        }
-
-        /* Else it is appended to the tree and the command leaf is moved */
-
-        else
-        {
-            struct ast_redir *ast_redir = &(*res)->data.ast_redir;
-
-            if (node->type == AST_COMMAND)
-            {
-                ast_redir->left = node;
-                node = *res;
-                result = *res;
-            }
-            else
-            {
-                struct ast_redir *old_node = &node->data.ast_redir;
-
-                ast_redir->left = old_node->left;
-                old_node->right = *res;
-                old_node->left = NULL;
-                node = *res;
-            }
-        }
-    }
+    parse_elements_loop(res, lexer, &ast_cmd, cmd_pack);
 
     *res = result;
 

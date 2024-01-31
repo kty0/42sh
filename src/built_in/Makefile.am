@@ -20,6 +20,6 @@ libdbuilt_in_a_CPPFLAGS = -I$(top_srcdir)/src
 
 libdbuilt_in_a_CFLAGS = -g -Og -std=c99 -Werror -Wall -Wextra -Wvla -pedantic
 
-libdbuilt_in_a_LDFLAGS = -fsanitize=address
+libdbuilt_in_a_LFLAGS = -fsanitize=address
 
 noinst_LIBRARIES = libbuilt_in.a libdbuilt_in.a

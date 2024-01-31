@@ -32,12 +32,10 @@ libdparser_a_SOURCES =  \
 	parser_loop.c \
 	parser_loop.h
 
-
-
 libdparser_a_CPPFLAGS = -I$(top_srcdir)/src
 
 libdparser_a_CFLAGS = -g -Og -std=c99 -Werror -Wall -Wextra -Wvla -pedantic
 
-libdparser_a_LDFLAGS = -fsanitize=address
+libdparser_a_LFLAGS = -fsanitize=address
 
 noinst_LIBRARIES = libparser.a libdparser.a
