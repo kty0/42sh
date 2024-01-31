@@ -108,6 +108,11 @@ struct token lexer_peek(struct lexer *lexer)
     return lexer->current_tok;
 }
 
+struct token lexer_super_peek(struct lexer *lexer)
+{
+    return lexer->next_tok;
+}
+
 struct token lexer_pop(struct lexer *lexer)
 {
     struct token curr_tok = lexer->current_tok;

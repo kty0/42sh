@@ -8,12 +8,11 @@
 struct lexer
 {
     FILE *file;
-    struct token current_tok; // The current free_token
-    struct token next_tok;
+    struct token current_tok; // the current token received by peek or pop
+    struct token next_tok; // the next token received by super_peek
     char charac;
 };
 
-// initialize the lexer
 void concat_quoted_str(char **str, char *str_sub, int *len_tot);
 
 struct lexer *lexer_new(FILE *file);
@@ -21,6 +20,8 @@ struct lexer *lexer_new(FILE *file);
 struct token lexer_pop(struct lexer *lexer);
 
 struct token lexer_peek(struct lexer *lexer);
+
+struct token lexer_super_peek(struct lexer *lexer);
 
 void lexer_free(struct lexer *lexer);
 

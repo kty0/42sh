@@ -26,9 +26,23 @@ static int is_reserved(char *value)
 enum parser_status parse_command(struct ast **res, struct lexer *lexer)
 {
     return parse_shell_command(res, lexer) == P_OK
+            || parse_funcdec(res, lexer) == P_OK
             || (parse_simple_command(res, lexer) == P_OK && *res != NULL)
         ? P_OK
         : P_KO;
+}
+
+enum parser_status parse_funcdec(struct ast **res, struct lexer *lexer)
+{
+    struct token tok = lexer_peek(lexer);
+    struct token next_tok = lexer_super_peek(lexer);
+
+    if (tok.type != TOKEN_WORD || next_tok.type != TOKEN_WORD || strcmp(next_tok.value, "("))
+    {
+        return P_KO;
+    }
+
+
 }
 
 enum parser_status parse_shell_command(struct ast **res, struct lexer *lexer)
