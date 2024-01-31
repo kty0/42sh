@@ -25,6 +25,7 @@ AC_CONFIG_FILES([
                  src/lexer/Makefile
                  src/built_in/Makefile
                  src/eval/Makefile
+                 src/domain_expansion/Makefile
                  tests/Makefile
                  ])
 AC_OUTPUT

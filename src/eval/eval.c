@@ -13,6 +13,12 @@
 #include "../built_in/echo.h"
 #include "../built_in/true_false.h"
 
+struct eval_functions
+{
+    enum ast_type type;
+    int (*eval_funs)(struct ast *ast);
+};
+
 static int eval_if(struct ast *ast)
 {
     struct ast_if *ast_if = &ast->data.ast_if;
@@ -203,48 +209,26 @@ static int eval_ope(struct ast *ast)
     return res;
 }
 
+static struct eval_functions eval_funs[] = {
+    { AST_IF, eval_if },        { AST_NOT, eval_not },
+    { AST_LIST, eval_list },    { AST_PIPE, eval_pipe },
+    { AST_WHILE, eval_while },  { AST_UNTIL, eval_until },
+    { AST_OPERATOR, eval_ope }, { AST_REDIRECTION, eval_redir },
+    { AST_COMMAND, eval_cmd }
+};
+
 int eval(struct ast *ast)
 {
     if (ast == NULL)
     {
         return 0;
     }
-
-    if (ast->type == AST_IF)
+    for (size_t i = 0; sizeof(eval_funs) / sizeof(struct eval_functions); i++)
     {
-        return eval_if(ast);
+        if (ast->type == eval_funs[i].type)
+        {
+            return eval_funs[i].eval_funs(ast);
+        }
     }
-    else if (ast->type == AST_COMMAND)
-    {
-        return eval_cmd(ast);
-    }
-    else if (ast->type == AST_NOT)
-    {
-        return eval_not(ast);
-    }
-    else if (ast->type == AST_LIST)
-    {
-        return eval_list(ast);
-    }
-    else if (ast->type == AST_PIPE)
-    {
-        return eval_pipe(ast);
-    }
-    else if (ast->type == AST_WHILE)
-    {
-        return eval_while(ast);
-    }
-    else if (ast->type == AST_UNTIL)
-    {
-        return eval_until(ast);
-    }
-    else if (ast->type == AST_OPERATOR)
-    {
-        return eval_ope(ast);
-    }
-    else if (ast->type == AST_REDIRECTION)
-    {
-        return eval_redir(ast);
-    }
-    err(1, "invalid node in the AST");
+    err(1, "invalid node in AST");
 }
