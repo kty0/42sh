@@ -19,10 +19,10 @@ struct eval_functions
     int (*eval_funs)(struct ast *ast);
 };
 
-struct function
+struct eval_functions
 {
     enum ast_type type;
-    int (*fun)(struct ast *ast);
+    int (*eval_funs)(struct ast *ast);
 };
 
 static int eval_if(struct ast *ast)
