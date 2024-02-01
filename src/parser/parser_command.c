@@ -26,7 +26,7 @@ static int is_reserved(char *value)
 enum parser_status parse_command(struct ast **res, struct lexer *lexer)
 {
     return parse_shell_command(res, lexer) == P_OK
-            || parse_funcdec(res, lexer) == P_OK
+            || (parse_funcdec(res, lexer) == P_OK && *res != NULL)
             || (parse_simple_command(res, lexer) == P_OK && *res != NULL)
         ? P_OK
         : P_KO;
@@ -34,15 +34,53 @@ enum parser_status parse_command(struct ast **res, struct lexer *lexer)
 
 enum parser_status parse_funcdec(struct ast **res, struct lexer *lexer)
 {
+    *res = NULL;
+
     struct token tok = lexer_peek(lexer);
     struct token next_tok = lexer_super_peek(lexer);
 
-    if (tok.type != TOKEN_WORD || next_tok.type != TOKEN_WORD || strcmp(next_tok.value, "("))
+    if (tok.type != TOKEN_WORD || next_tok.type != TOKEN_WORD
+        || strcmp(next_tok.value, "("))
     {
         return P_KO;
     }
 
+    tok = lexer_pop(lexer);
 
+    struct ast *ast = ast_new(AST_FUNCTION);
+
+    struct ast_fun *ast_fun = &ast->data.ast_fun;
+
+    ast_fun->name = tok.value;
+
+    tok = lexer_pop(lexer);
+
+    if (tok.type != TOKEN_WORD || strcmp(tok.value, ")"))
+    {
+        ast_free(ast);
+
+        return P_KO;
+    }
+
+    tok = lexer_peek(lexer);
+
+    while (tok.type == TOKEN_NEWLINE)
+    {
+        tok = lexer_pop(lexer);
+
+        tok = lexer_peek(lexer);
+    }
+
+    if (parse_shell_command(res, lexer) != P_OK)
+    {
+        ast_free(ast);
+
+        return P_KO;
+    }
+
+    *res = ast;
+
+    return P_OK;
 }
 
 enum parser_status parse_shell_command(struct ast **res, struct lexer *lexer)

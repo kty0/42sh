@@ -15,6 +15,7 @@ enum ast_type
     AST_OPERATOR,
     AST_WORD,
     AST_REDIRECTION,
+    AST_FUNCTION,
 };
 
 enum ope_type
@@ -99,6 +100,11 @@ struct ast_word
     char *arg;
 };
 
+struct ast_fun
+{
+    char *name;
+};
+
 /* a few very nice base structs */
 
 union ast_union
@@ -113,6 +119,7 @@ union ast_union
     struct ast_ope ast_ope;
     struct ast_redir ast_redir;
     struct ast_word ast_word;
+    struct ast_fun ast_fun;
 };
 
 struct ast
