@@ -10,15 +10,8 @@
 #include <unistd.h>
 
 #include "../ast/ast.h"
-#include "../built_in/echo.h"
-#include "../built_in/true_false.h"
+#include "../built_in/built_in.h"
 #include "../domain_expansion/domain_expansion.h"
-
-struct eval_functions
-{
-    enum ast_type type;
-    int (*eval_funs)(struct ast *ast);
-};
 
 struct eval_functions
 {
@@ -59,6 +52,15 @@ static int eval_cmd(struct ast *ast)
     else if (strcmp(ast_cmd->args[0], "false") == 0)
     {
         return my_false();
+    }
+    else if (strcmp(ast_cmd->args[0], "cd") == 0)
+    {
+        int res = cd(ast_cmd->args);
+        if (res == 1)
+        {
+            errx(1, "Usage : cd path/to/directory");
+        }
+        return res;
     }
     else
     {
@@ -144,7 +146,6 @@ static int eval_pipe(struct ast *ast)
 
     int fds[2];
     if (pipe(fds) == -1)
-   pick 150bed0 Revert "Merge branch '61-feat-parser-ad
     {
         errx(1, "failed to create the pipe");
     }
