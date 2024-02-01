@@ -38,20 +38,9 @@ enum token_type
     TOKEN_IN, // in
 };
 
-enum exp_type
-{
-    NORMAL,
-    QUOTE,
-    DQUOTE,
-    BACKSLASH,
-    DOLLAR,
-    BQUOTE,
-};
-
 struct token
 {
     enum token_type type; // The kind of token
-    enum exp_type exp;
     char *value; // If the token is a number, its value
 };
 

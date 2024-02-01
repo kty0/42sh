@@ -30,6 +30,6 @@ struct token lexer_peek_free(struct lexer *lexer);
 
 struct token lexer_pop_free(struct lexer *lexer);
 
-char *get_string(struct lexer *lexer, char *c, enum exp_type *exp);
+char *get_string(struct lexer *lexer, char *c);
 
 #endif /* !LEXER_H */

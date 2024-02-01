@@ -7,13 +7,13 @@
 #include "token.h"
 
 static struct token tokens[] = {
-    { TOKEN_SEMICOLON, NORMAL, ";" }, { TOKEN_NOT, NORMAL, "!" },
-    { TOKEN_PIPE, NORMAL, "|" },      { TOKEN_AND_IF, NORMAL, "&&" },
-    { TOKEN_OR_IF, NORMAL, "||" },    { TOKEN_NEWLINE, NORMAL, "\n" },
-    { TOKEN_DGREAT, NORMAL, ">>" },   { TOKEN_LESSAND, NORMAL, "<&" },
-    { TOKEN_GREATAND, NORMAL, ">&" }, { TOKEN_LESSGREAT, NORMAL, "<>" },
-    { TOKEN_CLOBBER, NORMAL, ">|" },  { TOKEN_GREAT, NORMAL, ">" },
-    { TOKEN_LESS, NORMAL, "<" }
+    { TOKEN_SEMICOLON, ";" }, { TOKEN_NOT, "!" },
+    { TOKEN_PIPE, "|" },      { TOKEN_AND_IF, "&&" },
+    { TOKEN_OR_IF, "||" },    { TOKEN_NEWLINE, "\n" },
+    { TOKEN_DGREAT, ">>" },   { TOKEN_LESSAND, "<&" },
+    { TOKEN_GREATAND, ">&" }, { TOKEN_LESSGREAT, "<>" },
+    { TOKEN_CLOBBER, ">|" },  { TOKEN_GREAT, ">" },
+    { TOKEN_LESS, "<" }
 };
 
 static int len = 0;
@@ -105,36 +105,17 @@ static int backslash(struct lexer *lexer, char *c, char **str)
     return 2;
 }
 
-static int rule_4(char **str, char *c, struct lexer *lexer, enum exp_type *exp)
+static int rule_4(char **str, char *c, struct lexer *lexer)
 {
     if (*c == '\'')
     {
-        if (simple_quote(str, c, lexer))
-        {
-            *exp = QUOTE;
-            return 1;
-        }
-        return 0;
+        return simple_quote(str, c, lexer);
     }
     else if (*c == '\\')
     {
-        int exp_bs = backslash(lexer, c, str);
-        if (exp_bs == 1)
-        {
-            *exp = BACKSLASH;
-        }
-        else if (exp_bs == 0)
-        {
-            return 0;
-        }
-        return 1;
+        return backslash(lexer, c, str);
     }
-    else if (double_quote(str, c, lexer))
-    {
-        *exp = DQUOTE;
-        return 1;
-    }
-    return 0;
+    return double_quote(str, c, lexer);
 }
 
 static int rule_9(struct lexer *lexer, char *c)
@@ -152,7 +133,7 @@ static char *free_error(char *str)
     return "error";
 }
 
-char *get_string(struct lexer *lexer, char *c, enum exp_type *exp)
+char *get_string(struct lexer *lexer, char *c)
 {
     // if segfault check append_char
     char *str = NULL;
@@ -171,7 +152,7 @@ char *get_string(struct lexer *lexer, char *c, enum exp_type *exp)
         }
         else if (check_quote(*c)) // rule 4
         {
-            if (!rule_4(&str, c, lexer, exp))
+            if (!rule_4(&str, c, lexer))
             {
                 return free_error(str);
             }

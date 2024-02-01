@@ -10,13 +10,13 @@
 #include "token.h"
 
 static struct token tokens[] = {
-    { TOKEN_SEMICOLON, NORMAL, ";" },  { TOKEN_ERROR, NORMAL, "error" },
-    { TOKEN_NOT, NORMAL, "!" },        { TOKEN_PIPE, NORMAL, "|" },
-    { TOKEN_AND_IF, NORMAL, "&&" },    { TOKEN_OR_IF, NORMAL, "||" },
-    { TOKEN_NEWLINE, NORMAL, "\n" },   { TOKEN_DGREAT, NORMAL, ">>" },
-    { TOKEN_LESSAND, NORMAL, "<&" },   { TOKEN_GREATAND, NORMAL, ">&" },
-    { TOKEN_LESSGREAT, NORMAL, "<>" }, { TOKEN_CLOBBER, NORMAL, ">|" },
-    { TOKEN_GREAT, NORMAL, ">" },      { TOKEN_LESS, NORMAL, "<" }
+    { TOKEN_SEMICOLON, ";" },  { TOKEN_ERROR, "error" },
+    { TOKEN_NOT, "!" },        { TOKEN_PIPE, "|" },
+    { TOKEN_AND_IF, "&&" },    { TOKEN_OR_IF, "||" },
+    { TOKEN_NEWLINE, "\n" },   { TOKEN_DGREAT, ">>" },
+    { TOKEN_LESSAND, "<&" },   { TOKEN_GREATAND, ">&" },
+    { TOKEN_LESSGREAT, "<>" }, { TOKEN_CLOBBER, ">|" },
+    { TOKEN_GREAT, ">" },      { TOKEN_LESS, "<" }
 };
 
 void lexer_free(struct lexer *lexer)
@@ -51,8 +51,7 @@ static struct token parse_input_for_tok(struct lexer *lexer)
     struct token new;
     new.value = NULL;
     char c = lexer->charac;
-    new.exp = NORMAL;
-    char *string = get_string(lexer, &c, &new.exp);
+    char *string = get_string(lexer, &c);
     lexer->charac = c;
     int is_word = 1;
     if (string == NULL)
