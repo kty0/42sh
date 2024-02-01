@@ -10,7 +10,8 @@
 #include <unistd.h>
 
 #include "../ast/ast.h"
-#include "../built_in/built_in.h"
+#include "../built_in/echo.h"
+#include "../built_in/true_false.h"
 #include "../domain_expansion/domain_expansion.h"
 
 struct eval_functions
@@ -58,15 +59,6 @@ static int eval_cmd(struct ast *ast)
     else if (strcmp(ast_cmd->args[0], "false") == 0)
     {
         return my_false();
-    }
-    else if (strcmp(ast_cmd->args[0], "cd") == 0)
-    {
-        int res = cd(ast_cmd->args);
-        if (res == 1)
-        {
-            errx(1, "Usage : cd path/to/directory");
-        }
-        return res;
     }
     else
     {
