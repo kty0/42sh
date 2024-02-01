@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "built_in.h"
+
 static int set_flags(char *option, int *newline, int *enable)
 {
     if (option == NULL)
