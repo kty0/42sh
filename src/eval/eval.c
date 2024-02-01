@@ -12,6 +12,7 @@
 #include "../ast/ast.h"
 #include "../built_in/echo.h"
 #include "../built_in/true_false.h"
+#include "../domain_expansion/domain_expansion.h"
 
 struct eval_functions
 {
@@ -35,6 +36,10 @@ static int eval_cmd(struct ast *ast)
 {
     struct ast_cmd *ast_cmd = &ast->data.ast_cmd;
 
+    for (size_t i = 0; ast_cmd->args[i]; i++)
+    {
+        expand(&(ast_cmd->args[i]));
+    }
     if (strcmp(ast_cmd->args[0], "echo") == 0)
     {
         int res = echo(ast_cmd->args);

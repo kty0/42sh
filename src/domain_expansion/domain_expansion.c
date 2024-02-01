@@ -1,33 +1,36 @@
+#define _POSIX_C_SOURCE 200809L
+
 #include "domain_expansion.h"
 
+#include <err.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
-#include "../ast/ast.h"
-#include "../lexer/token.h"
+#include "string_builder.h"
 
 struct expand_functions
 {
-    enum exp_type exp_type;
-    void (*expand_funs)(char **, size_t i);
+    char c;
+    void (*expand_funs)(FILE *, struct string_builder *sb);
 };
 
-static void expand_quote(char **str, size_t k)
+static void expand_quote(FILE *file, struct string_builder *sb)
 {
-    size_t len = strlen(str[k]);
-    char *new_string = calloc(len, sizeof(char));
-    size_t j = 0;
-
-    for (size_t i = 0; str[k][i] != '\0'; i++)
+    char c = getc(file);
+    while (c != '\'')
     {
-        if (str[k][i] != '\'')
-        {
-            new_string[j++] = str[k][i];
-        }
+        append_char_sb(c, sb);
+        c = getc(file);
     }
-    free(str[k]);
-    str[k] = new_string;
+}
+
+static void expand_backslash(FILE *file, struct string_builder *sb)
+{
+    char c = getc(file);
+    if (c != '\0')
+    {
+        append_char_sb(c, sb);
+    }
 }
 
 static int check_d_backslash(char c)
@@ -35,80 +38,66 @@ static int check_d_backslash(char c)
     return c == '$' || c == '`' || c == '"' || c == '\\' || c == '\n';
 }
 
-static void expand_dquote(char **str, size_t k)
+static void expand_d_quote(FILE *file, struct string_builder *sb)
 {
-    size_t len = strlen(str[k]);
-    char *new_string = calloc(len, sizeof(char));
-    size_t j = 0;
-
-    for (size_t i = 0; str[k][i] != '\0'; i++)
+    char c = getc(file); // to skip the first "
+    while (c != '"')
     {
-        if (str[k][i] != '"' && str[k][i] != '\\')
+        if (c == '\\')
         {
-            new_string[j++] = str[k][i];
-        }
-        else if (str[k][i] == '\\')
-        {
-            if (check_d_backslash(str[k][i + 1]))
+            char bs = c;
+            c = getc(file);
+            if (!check_d_backslash(c))
             {
-                if (str[k][i + 1] != '\0')
-                {
-                    new_string[j++] = str[k][i + 1];
-                    i++;
-                }
+                append_char_sb(bs, sb);
             }
-            else
-            {
-                new_string[j++] = str[k][i];
-            }
-        }
-    }
-    free(str[k]);
-    str[k] = new_string;
-}
-
-static void expand_backslash(char **str, size_t k)
-{
-    size_t len = strlen(str[k]);
-    char *new_string = calloc(len, sizeof(char));
-    size_t j = 0;
-
-    for (size_t i = 0; str[k][i] != '\0'; i++)
-    {
-        if (str[k][i] != '\\')
-        {
-            new_string[j++] = str[k][i];
-        }
+            append_char_sb(c, sb);
+        } // add '$'
         else
         {
-            if (str[k][i + 1] != '\0')
-            {
-                new_string[j++] = str[k][i + 1];
-                i++;
-            }
+            append_char_sb(c, sb);
         }
+        c = getc(file);
     }
-    free(str[k]);
-    str[k] = new_string;
 }
 
-static struct expand_functions expand_funs[] = { { QUOTE, expand_quote },
-                                                 { DQUOTE, expand_dquote },
-                                                 { BACKSLASH,
-                                                   expand_backslash } };
+static struct expand_functions expand_funs[] = { { '\'', expand_quote },
+                                                 { '\\', expand_backslash },
+                                                 { '"', expand_d_quote } };
 
-void expand_command(struct ast *ast)
+static FILE *to_file(char *str)
 {
-    struct ast_cmd *ast_cmd = &ast->data.ast_cmd;
-    for (size_t i = 0; ast_cmd->args[i] != NULL; i++)
+    FILE *stream = fmemopen(str, strlen(str), "r");
+    if (!stream)
     {
-        for (size_t j = 0;
-             j < sizeof(expand_funs) / sizeof(struct expand_functions); j++)
+        errx(1, "Failed to convert the expandable string to a FILE *");
+    }
+    return stream;
+}
+
+void expand(char **str)
+{
+    FILE *file = to_file(*str);
+    struct string_builder *sb = new_sb();
+    char c = getc(file);
+    int is_simple = 1;
+    while (c != EOF)
+    {
+        is_simple = 1;
+        for (size_t i = 0;
+             i < sizeof(expand_funs) / sizeof(struct expand_functions); i++)
         {
-            if (*(ast_cmd->exps[i]) == expand_funs[j].exp_type)
+            if (c == expand_funs[i].c)
             {
-                expand_funs[j].expand_funs(ast_cmd->args, i);
+                expand_funs[i].expand_funs(file, sb);
+                is_simple = 0;
             }
         }
+        if (is_simple)
+        {
+            append_char_sb(c, sb);
+        }
+        c = getc(file);
     }
+    get_sb_string_free(str, sb);
 }
