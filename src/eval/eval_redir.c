@@ -9,8 +9,7 @@
 #include <unistd.h>
 
 #include "../ast/ast.h"
-#include "../built_in/echo.h"
-#include "../built_in/true_false.h"
+#include "../built_in/built_in.h"
 #include "eval.h"
 
 /* Opens file for reading on the designated file descriptor */
