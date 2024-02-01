@@ -52,7 +52,7 @@ static struct token parse_input_for_tok(struct lexer *lexer)
     new.value = NULL;
     char c = lexer->charac;
     new.exp = NORMAL;
-    char *string = get_string(lexer, &c, &new.exp);
+    char *string = get_string(lexer, &c);
     lexer->charac = c;
     int is_word = 1;
     if (string == NULL)

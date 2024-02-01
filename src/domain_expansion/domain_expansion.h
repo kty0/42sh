@@ -5,7 +5,6 @@
 
 #include "../ast/ast.h"
 
-void expand(struct ast *ast);
-void expand_command(struct ast *ast);
+void expand(char **str);
 
 #endif /* DOMAIN_EXPANSION_H */

@@ -43,7 +43,6 @@ static int parse_eval(FILE *stream, enum source source)
             ast_print(ast);
             puts("");
         }
-        expand(ast);
         res = eval(ast);
 
         ast_free(ast);

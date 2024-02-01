@@ -105,39 +105,20 @@ static int backslash(struct lexer *lexer, char *c, char **str)
     return 2;
 }
 
-static int rule_4(char **str, char *c, struct lexer *lexer, enum exp_type *exp)
+static int quoting_handler(char **str, char *c, struct lexer *lexer)
 {
     if (*c == '\'')
     {
-        if (simple_quote(str, c, lexer))
-        {
-            *exp = QUOTE;
-            return 1;
-        }
-        return 0;
+        return simple_quote(str, c, lexer);
     }
     else if (*c == '\\')
     {
-        int exp_bs = backslash(lexer, c, str);
-        if (exp_bs == 1)
-        {
-            *exp = BACKSLASH;
-        }
-        else if (exp_bs == 0)
-        {
-            return 0;
-        }
-        return 1;
+        return backslash(lexer, c, str);
     }
-    else if (double_quote(str, c, lexer))
-    {
-        *exp = DQUOTE;
-        return 1;
-    }
-    return 0;
+    return double_quote(str, c, lexer);
 }
 
-static int rule_9(struct lexer *lexer, char *c)
+static int comments_skip(struct lexer *lexer, char *c)
 {
     while (*c != '\n' && *c != EOF)
     {
@@ -152,7 +133,7 @@ static char *free_error(char *str)
     return "error";
 }
 
-char *get_string(struct lexer *lexer, char *c, enum exp_type *exp)
+char *get_string(struct lexer *lexer, char *c)
 {
     // if segfault check append_char
     char *str = NULL;
@@ -171,7 +152,7 @@ char *get_string(struct lexer *lexer, char *c, enum exp_type *exp)
         }
         else if (check_quote(*c)) // rule 4
         {
-            if (!rule_4(&str, c, lexer, exp))
+            if (!quoting_handler(&str, c, lexer))
             {
                 return free_error(str);
             }
@@ -189,7 +170,7 @@ char *get_string(struct lexer *lexer, char *c, enum exp_type *exp)
         }
         else if (*c == '#' && !len)
         {
-            if (!rule_9(lexer, c))
+            if (!comments_skip(lexer, c))
             {
                 return free_error(str);
             }
