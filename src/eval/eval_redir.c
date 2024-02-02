@@ -1,5 +1,6 @@
 #include <err.h>
 #include <fcntl.h>
+#include <limits.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -251,16 +252,45 @@ static int eval_redir_dgreat(struct ast_redir *ast_redir)
 }
 
 /* Not working still in progress code */
-static int eval_redir_lessand(struct ast_redir *ast_redir)
+static int eval_redir_anyand(struct ast_redir *ast_redir)
 {
-    int fdtemp = -1;
+    /* If file is "-" just closes the given fd */
 
-    int fd = dup2(fdtemp, ast_redir->fd);
+    if (!strcmp(ast_redir->file, "-"))
+    {
+        close(ast_redir->fd);
+        return 0;
+    }
 
-    if (fd == -1)
+    /* Saving the fd which will be overwritten */
+
+    int fdout = dup(ast_redir->fd);
+    if (fdout == -1)
     {
         return 1;
     }
+
+    /* Gets the value of the source fd from file */
+
+    long fdsrc = strtol(ast_redir->file, NULL, 10);
+    if (fdsrc == LONG_MIN)
+    {
+        errx(1, "source file descriptor is weird");
+    }
+
+    /* Overwriting the fd with the new one */
+
+    int fdtemp = dup2(fdsrc, ast_redir->fd);
+    if (fdtemp == -1)
+    {
+        close(fdsrc);
+        close(fdout);
+
+        errx(1, "source file descriptor is invalid");
+    }
+
+    /* Pursuing the evaluation */
+
     int res;
     if (ast_redir->right == NULL)
     {
@@ -270,44 +300,35 @@ static int eval_redir_lessand(struct ast_redir *ast_redir)
     {
         res = eval(ast_redir->right);
     }
-    if (dup2(fd, ast_redir->fd) == -1)
+
+    /* Putting back the overwritten fd as it was */
+
+    if (dup2(fdout, ast_redir->fd) == -1)
     {
-        // need to handle error
-        close(fd);
+        close(fdtemp);
         return 1;
     }
 
-    close(fd);
+    close(fdout);
 
     return res;
 }
-
-/*
-static int eval_redir_greatand(struct ast_redir *ast_redir)
-{
-    //TODO
-}
-*/
 
 int eval_redir(struct ast *ast)
 {
     struct ast_redir *ast_redir = &ast->data.ast_redir;
 
-    if (ast_redir->type == LESS || ast_redir->type == CLOBBER)
+    if (ast_redir->type == LESS)
     {
         return eval_redir_less(ast_redir);
     }
-    else if (ast_redir->type == GREAT)
+    else if (ast_redir->type == GREAT || ast_redir->type == CLOBBER)
     {
         return eval_redir_great(ast_redir);
     }
-    else if (ast_redir->type == LESSAND)
+    else if (ast_redir->type == LESSAND || ast_redir->type == GREATAND)
     {
-        return eval_redir_lessand(ast_redir);
-    }
-    else if (ast_redir->type == GREATAND)
-    {
-        return eval_redir_great(ast_redir);
+        return eval_redir_anyand(ast_redir);
     }
     else if (ast_redir->type == LESSGREAT)
     {
