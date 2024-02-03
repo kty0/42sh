@@ -53,6 +53,7 @@ enum parser_status parse_shell_command(struct ast **res, struct lexer *lexer)
         return parse_rule_if(res, lexer) == P_OK
                 || parse_rule_while(res, lexer) == P_OK
                 || parse_rule_until(res, lexer) == P_OK
+                || parse_rule_for(res, lexer) == P_OK
             ? P_OK
             : P_KO;
     }

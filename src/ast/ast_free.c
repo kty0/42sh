@@ -118,6 +118,25 @@ static void ast_free_assign(struct ast *ast)
 
     free(ast_assign->key);
     free(ast_assign->value);
+}
+
+static void ast_free_for(struct ast *ast)
+{
+    struct ast_for *ast_for = &ast->data.ast_for;
+
+    free(ast_for->var);
+
+    if (ast_for->list != NULL)
+    {
+        for (int i = 0; ast_for->list[i] != NULL; i++)
+        {
+            free(ast_for->list[i]);
+        }
+    }
+    free(ast_for->list);
+
+    ast_free(ast_for->body);
+
     free(ast);
 }
 
@@ -159,6 +178,9 @@ void ast_free(struct ast *ast)
         break;
     case AST_ASSIGNMENT:
         ast_free_assign(ast);
+        break;
+    case AST_FOR:
+        ast_free_for(ast);
         break;
     default:
         errx(2, "failed to free the AST");

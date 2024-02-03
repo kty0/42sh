@@ -5,6 +5,8 @@ libast_a_SOURCES =  \
 	ast.h \
 	ast_new.c \
 	ast_new.h \
+	ast_print.c \
+	ast_print.h \
 	ast_free.c
 
 libast_a_CPPFLAGS = -I$(top_srcdir)/src
@@ -16,6 +18,8 @@ libdast_a_SOURCES =  \
 	ast.h \
 	ast_new.c \
 	ast_new.h \
+	ast_print.c \
+	ast_print.h \
 	ast_free.c
 
 libdast_a_CPPFLAGS = -I$(top_srcdir)/src

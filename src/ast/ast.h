@@ -16,6 +16,7 @@ enum ast_type
     AST_WORD,
     AST_REDIRECTION,
     AST_ASSIGNMENT,
+    AST_FOR,
 };
 
 enum ope_type
@@ -106,6 +107,13 @@ struct ast_assign
     struct ast *next;
 };
 
+struct ast_for
+{
+    char *var;
+    char **list;
+    struct ast *body;
+};
+
 /* a few very nice base structs */
 
 union ast_union
@@ -121,6 +129,7 @@ union ast_union
     struct ast_redir ast_redir;
     struct ast_word ast_word;
     struct ast_assign ast_assign;
+    struct ast_for ast_for;
 };
 
 struct ast
@@ -139,7 +148,7 @@ int ast_cmd_push(struct ast *ast, char *arg);
 
 int ast_list_push(struct ast *ast, struct ast *child);
 
-void ast_print(struct ast *ast);
+int ast_for_push(struct ast *ast, char *item);
 
 void ast_free(struct ast *ast);
 
