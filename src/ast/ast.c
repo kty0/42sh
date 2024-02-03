@@ -7,7 +7,74 @@
 
 #include "../lexer/token.h"
 
-int ast_cmd_push(struct ast *ast, char *arg, enum exp_type exp)
+/**
+ *  \brief  Adds an assignment node to the linked list of a given command
+ *  \fn     int ast_cmd_push_assign(struct ast *ast, struct ast *assignment);
+ *  \param  ast The destination command
+ *  \param  assignment The assignment node to be pushed
+ *  \return 0 or 1 whether it succeeded or not
+ */
+int ast_cmd_push_assign(struct ast *ast, struct ast *assignment)
+{
+    struct ast_cmd *ast_cmd = &ast->data.ast_cmd;
+
+    if (ast_cmd->vars == NULL)
+    {
+        ast_cmd->vars = assignment;
+    }
+    else
+    {
+        struct ast_assign *node = &(ast_cmd->vars)->data.ast_assign;
+
+        while (node->next != NULL)
+        {
+            node = &(node->next)->data.ast_assign;
+        }
+
+        node->next = assignment;
+    }
+
+    return 0;
+}
+
+/**
+ *  \brief  Adds a redir node to the linked list of a given command
+ *  \fn     int ast_cmd_push_redir(struct ast *ast, struct ast *redir);
+ *  \param  ast The destination command
+ *  \param  redir The redir node to be pushed
+ *  \return 0 or 1 whether it succeeded or not
+ */
+int ast_cmd_push_redir(struct ast *ast, struct ast *redir)
+{
+    struct ast_cmd *ast_cmd = &ast->data.ast_cmd;
+
+    if (ast_cmd->redirs == NULL)
+    {
+        ast_cmd->redirs = redir;
+    }
+    else
+    {
+        struct ast_redir *node = &(ast_cmd->redirs)->data.ast_redir;
+
+        while (node->next != NULL)
+        {
+            node = &(node->next)->data.ast_redir;
+        }
+
+        node->next = redir;
+    }
+
+    return 0;
+}
+
+/**
+ *  \brief  Adds an argument to the NULL terminated args of a given command
+ *  \fn     int ast_cmd_push(struct ast *ast, char *arg);
+ *  \param  ast The destination command
+ *  \param  arg The argument to be pushed
+ *  \return 0 or 1 whether it succeeded or not
+ */
+int ast_cmd_push(struct ast *ast, char *arg)
 {
     struct ast_cmd *ast_cmd = &ast->data.ast_cmd;
 
@@ -28,30 +95,16 @@ int ast_cmd_push(struct ast *ast, char *arg, enum exp_type exp)
     ast_cmd->args[len - 1] = arg;
     ast_cmd->args[len] = NULL;
 
-    len = 0;
-    while (ast_cmd->exps[len] != NULL)
-    {
-        len++;
-    }
-    len++;
-
-    enum exp_type **tmp2 =
-        realloc(ast_cmd->exps, sizeof(enum exp_type *) * (len + 1));
-    if (tmp2 == NULL)
-    {
-        return 1;
-    }
-    ast_cmd->exps = tmp2;
-
-    enum exp_type *new_exp = malloc(sizeof(enum exp_type));
-    *new_exp = exp;
-
-    ast_cmd->exps[len - 1] = new_exp;
-    ast_cmd->exps[len] = NULL;
-
     return 0;
 }
 
+/**
+ *  \brief  Adds a child note to the NULL terminated children of a given command
+ *  \fn     int ast_list_push(struct ast *ast, struct ast *child);
+ *  \param  ast The destination command
+ *  \param  child The child to be pushed
+ *  \return 0 or 1 whether it succeeded or not
+ */
 int ast_list_push(struct ast *ast, struct ast *child)
 {
     struct ast_list *ast_list = &ast->data.ast_list;
@@ -105,10 +158,22 @@ static void print_command(struct ast *ast)
 
     printf("command ");
 
+    if (ast_cmd->args[0] == NULL)
+    {
+        printf("NULL ");
+    }
+
     for (int i = 0; ast_cmd->args[i] != NULL; i++)
     {
         printf("%s ", ast_cmd->args[i]);
     }
+
+    printf("{ redirs: ");
+    ast_print(ast_cmd->redirs);
+    printf("} ");
+    printf("{ var: ");
+    ast_print(ast_cmd->vars);
+    printf("} ");
 }
 
 static void print_list(struct ast *ast)
@@ -118,6 +183,7 @@ static void print_list(struct ast *ast)
     for (int i = 0; ast_list->children[i] != NULL; i++)
     {
         ast_print(ast_list->children[i]);
+        printf(";");
     }
 }
 
@@ -180,6 +246,18 @@ static void print_ope(struct ast *ast)
     printf("} ");
 }
 
+static void print_assign(struct ast *ast)
+{
+    struct ast_assign *ast_assign = &ast->data.ast_assign;
+    printf("{ ");
+    printf("%s ", ast_assign->key);
+    printf("= ");
+    printf("%s ", ast_assign->value);
+    printf("} ");
+
+    ast_print(ast_assign->next);
+}
+
 static void print_redir(struct ast *ast)
 {
     struct ast_redir *ast_redir = &ast->data.ast_redir;
@@ -211,15 +289,16 @@ static void print_redir(struct ast *ast)
     default:
         break;
     }
-    if (ast_redir->right != NULL)
-    {
-        ast_print(ast_redir->right);
-    }
-    else
-    {
-        ast_print(ast_redir->left);
-    }
+    ast_print(ast_redir->next);
     printf("} ");
+}
+
+static void print_not(struct ast *ast)
+{
+    struct ast_not *ast_not = &ast->data.ast_not;
+
+    printf("not ");
+    ast_print(ast_not->child);
 }
 
 void ast_print(struct ast *ast)
@@ -254,6 +333,12 @@ void ast_print(struct ast *ast)
         break;
     case AST_REDIRECTION:
         print_redir(ast);
+        break;
+    case AST_ASSIGNMENT:
+        print_assign(ast);
+        break;
+    case AST_NOT:
+        print_not(ast);
         break;
     default:
         break;

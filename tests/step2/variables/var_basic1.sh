@@ -1,0 +1,2 @@
+var="Nosepass"
+echo $var

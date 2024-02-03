@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "../ast/ast.h"
 #include "../ast/ast_new.h"
@@ -18,7 +19,7 @@ enum parser_status parse_pipeline(struct ast **res, struct lexer *lexer)
     /* Checking if there is a TOKEN_NOT to begin with for later */
 
     struct token tok = lexer_peek(lexer);
-    int is_not = tok.type == TOKEN_NOT;
+    int is_not = tok.type == TOKEN_WORD && !strcmp(tok.value, "!");
 
     if (is_not)
     {

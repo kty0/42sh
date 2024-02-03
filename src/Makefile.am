@@ -4,7 +4,8 @@ SUBDIRS = ast \
 	lexer \
 	built_in \
 	eval \
-	domain_expansion
+	domain_expansion \
+	hash_map
 
 bin_PROGRAMS = 42sh 42debug
 
@@ -20,7 +21,8 @@ bin_PROGRAMS = 42sh 42debug
 	lexer/liblexer.a \
 	eval/libeval.a \
 	built_in/libbuilt_in.a \
-	domain_expansion/libdomainexpansion.a
+	domain_expansion/libdomainexpansion.a \
+	hash_map/libhashmap.a
 
 42debug_SOURCES = 42sh.c
 
@@ -36,4 +38,5 @@ bin_PROGRAMS = 42sh 42debug
 	lexer/libdlexer.a \
 	eval/libdeval.a \
 	built_in/libdbuilt_in.a \
-	domain_expansion/libddomainexpansion.a
+	domain_expansion/libddomainexpansion.a \
+	hash_map/libdhashmap.a

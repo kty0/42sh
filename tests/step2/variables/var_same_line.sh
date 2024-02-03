@@ -1,0 +1,1 @@
+var="Ledian" echo $var

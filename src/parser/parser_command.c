@@ -20,7 +20,20 @@ static int is_reserved(char *value)
         || !strcmp(value, "then") || !strcmp(value, "do")
         || !strcmp(value, "while") || !strcmp(value, "until")
         || !strcmp(value, "done") || !strcmp(value, "else")
-        || !strcmp(value, "elif");
+        || !strcmp(value, "elif") || !strcmp(value, "!");
+}
+
+static int is_assignment(char *value)
+{
+    for (int i = 0; value[i] != '\0'; i++)
+    {
+        if (value[i] == '=')
+        {
+            return 1;
+        }
+    }
+
+    return 0;
 }
 
 enum parser_status parse_command(struct ast **res, struct lexer *lexer)
@@ -40,11 +53,86 @@ enum parser_status parse_shell_command(struct ast **res, struct lexer *lexer)
         : P_KO;
 }
 
-static void parse_elements_loop(struct ast **res, struct lexer *lexer,
-                                struct ast **ast_cmd, struct cmd_pack cmd_pack)
+/* Unintuitively parsing a not so simple command:
+ *
+ * architecture of the Command shall be a single command node with
+ * - its Arguments in an array of char *
+ * - its Redirections in an array of ast_redir as ast *
+ * - its Variables in an array of ast_assign as ast *
+ * all arrays being NULL terminated
+ *
+ *              ╭─────── C ───────╮
+ *              │        │        │
+ *              A        R        V
+ *              │        │        │
+ *              A        R        V
+ *                       │        │
+ *                       R        V
+ *                       │
+ *                       R
+ *                       │
+ *                       R
+ *
+ */
+enum parser_status parse_simple_command(struct ast **res, struct lexer *lexer)
 {
-    struct ast **node = cmd_pack.node;
-    struct ast **result = cmd_pack.result;
+    *res = NULL;
+
+    /* Creating the command root node */
+
+    struct ast *root = ast_new(AST_COMMAND);
+
+    int is_empty = 1;
+
+    /* Parsing early redirections or assignments */
+
+    while (parse_prefix(res, lexer) != P_KO)
+    {
+        is_empty = 0;
+
+        if ((*res)->type == AST_REDIRECTION)
+        {
+            ast_cmd_push_redir(root, *res);
+        }
+        else
+        {
+            ast_cmd_push_assign(root, *res);
+        }
+    }
+
+    struct token tok = lexer_peek(lexer);
+
+    /* If there is no word coming then we only have prefixes and may be good */
+
+    if (tok.type != TOKEN_WORD)
+    {
+        if (is_empty)
+        {
+            ast_free(root);
+        }
+        else
+        {
+            *res = root;
+        }
+
+        return P_OK;
+    }
+
+    /* If this word is reserved though, it cannot be a command */
+
+    if (is_reserved(tok.value) || is_assignment(tok.value))
+    {
+        ast_free(root);
+        return P_KO;
+    }
+
+    /* Building up the command */
+
+    tok = lexer_pop(lexer);
+
+    ast_cmd_push(root, tok.value);
+
+    /* Parsing the following elements */
 
     while (parse_element(res, lexer) != P_KO)
     {
@@ -53,116 +141,19 @@ static void parse_elements_loop(struct ast **res, struct lexer *lexer,
         if ((*res)->type == AST_WORD)
         {
             struct ast_word *word = &(*res)->data.ast_word;
-            ast_cmd_push(*ast_cmd, word->arg, word->exp);
+            ast_cmd_push(root, word->arg);
             free(*res);
         }
 
-        /* Else it is appended to the tree and the command leaf is moved */
+        /* Else it is appended to the redirections */
 
         else
         {
-            struct ast_redir *ast_redir = &(*res)->data.ast_redir;
-
-            if ((*node)->type == AST_COMMAND)
-            {
-                ast_redir->left = *node;
-                *node = *res;
-                *result = *res;
-            }
-            else
-            {
-                struct ast_redir *old_node = &(*node)->data.ast_redir;
-
-                ast_redir->left = old_node->left;
-                old_node->right = *res;
-                old_node->left = NULL;
-                *node = *res;
-            }
-        }
-    }
-}
-
-/* Unintuitively parsing a not so simple command:
- *
- * architecture of the command shall be a degenerated tree with redirections
- * on the right and a single command as the sole leaf on the left
- *
- *     R ───────╮
- *              │
- *              R ───────╮
- *                       │
- *                       R ───────╮
- *                                │
- *                       ╭─────── R
- *                       │
- *                       C
- */
-enum parser_status parse_simple_command(struct ast **res, struct lexer *lexer)
-{
-    *res = NULL;
-
-    /* Creating the result node being the root and the node node being
-     * the last child */
-
-    struct token tok = lexer_peek(lexer);
-    struct ast *result = NULL;
-    struct ast *node = NULL;
-
-    /* Parsing early redirections */
-
-    while (parse_prefix(res, lexer) != P_KO)
-    {
-        if (!node)
-        {
-            node = *res;
-            result = *res;
-        }
-        else
-        {
-            struct ast_redir *ast_redir = &node->data.ast_redir;
-            ast_redir->right = *res;
-            node = *res;
+            ast_cmd_push_redir(root, *res);
         }
     }
 
-    tok = lexer_peek(lexer);
-
-    if (tok.type != TOKEN_WORD)
-    {
-        return P_OK;
-    }
-
-    if (is_reserved(tok.value))
-    {
-        return P_KO;
-    }
-
-    /* Creating the command and placing it at the right place in the tree */
-
-    tok = lexer_pop(lexer);
-
-    struct ast *ast_cmd = ast_new(AST_COMMAND);
-
-    ast_cmd_push(ast_cmd, tok.value, tok.exp);
-
-    if (!node)
-    {
-        node = ast_cmd;
-        result = ast_cmd;
-    }
-    else
-    {
-        struct ast_redir *ast_redir = &node->data.ast_redir;
-        ast_redir->left = ast_cmd;
-    }
-
-    /* Parsing the following elements */
-
-    struct cmd_pack cmd_pack = { .node = &node, .result = &result };
-
-    parse_elements_loop(res, lexer, &ast_cmd, cmd_pack);
-
-    *res = result;
+    *res = root;
 
     return P_OK;
 }

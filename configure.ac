@@ -26,6 +26,7 @@ AC_CONFIG_FILES([
                  src/built_in/Makefile
                  src/eval/Makefile
                  src/domain_expansion/Makefile
+                 src/hash_map/Makefile
                  tests/Makefile
                  ])
 AC_OUTPUT

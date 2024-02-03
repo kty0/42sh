@@ -4,7 +4,10 @@
 #include <err.h>
 
 #include "../ast/ast.h"
+#include "../hash_map/hash_map.h"
 
-void expand(char **str);
+char **expand(char **args, struct hash_map *hm);
+
+char **expand_string(char *str, char **args);
 
 #endif /* DOMAIN_EXPANSION_H */

@@ -15,6 +15,7 @@ enum ast_type
     AST_OPERATOR,
     AST_WORD,
     AST_REDIRECTION,
+    AST_ASSIGNMENT,
 };
 
 enum ope_type
@@ -38,8 +39,9 @@ enum redir_type
 
 struct ast_cmd
 {
-    enum exp_type **exps; // NULL terminated exp_type array
     char **args; // NULL terminated arguments array
+    struct ast *redirs; // NULL terminated redirections array
+    struct ast *vars; // NULL terminated variables array
 };
 
 struct ast_if
@@ -89,14 +91,19 @@ struct ast_redir
     enum redir_type type;
     int fd;
     char *file;
-    struct ast *left;
-    struct ast *right;
+    struct ast *next;
 };
 
 struct ast_word
 {
-    enum exp_type exp;
     char *arg;
+};
+
+struct ast_assign
+{
+    char *key;
+    char *value;
+    struct ast *next;
 };
 
 /* a few very nice base structs */
@@ -113,6 +120,7 @@ union ast_union
     struct ast_ope ast_ope;
     struct ast_redir ast_redir;
     struct ast_word ast_word;
+    struct ast_assign ast_assign;
 };
 
 struct ast
@@ -123,7 +131,11 @@ struct ast
 
 /* our pretty functions */
 
-int ast_cmd_push(struct ast *ast, char *arg, enum exp_type exp);
+int ast_cmd_push_assign(struct ast *ast, struct ast *assignment);
+
+int ast_cmd_push_redir(struct ast *ast, struct ast *redir);
+
+int ast_cmd_push(struct ast *ast, char *arg);
 
 int ast_list_push(struct ast *ast, struct ast *child);
 

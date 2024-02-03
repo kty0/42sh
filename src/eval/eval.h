@@ -2,6 +2,7 @@
 #define EVAL_H
 
 #include "../ast/ast.h"
+#include "../hash_map/hash_map.h"
 
 enum side
 {
@@ -9,8 +10,10 @@ enum side
     RIGHT
 };
 
-int eval(struct ast *ast);
+int eval(struct ast *ast, struct hash_map *h);
 
-int eval_redir(struct ast *ast);
+int eval_redir(struct ast *ast, struct ast_cmd *ast_cmd);
+
+int launch_command(struct ast_cmd *ast_cmd);
 
 #endif /* !EVAL_H */

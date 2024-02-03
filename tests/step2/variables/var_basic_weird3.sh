@@ -1,0 +1,2 @@
+weird=%-=$^@#{}[]/_
+echo $weird

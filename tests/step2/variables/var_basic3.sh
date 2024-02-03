@@ -1,0 +1,2 @@
+var=Sandile
+echo ${var}
