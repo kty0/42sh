@@ -18,7 +18,7 @@ libddomainexpansion_a_SOURCES =  \
 
 libddomainexpansion_a_CPPFLAGS = -I$(top_srcdir)/src
 
-libddomainexpansion_a_CFLAGS = -g -Og -std=c99 -Werror -Wall -Wextra -Wvla -pedantic
+libddomainexpansion_a_CFLAGS = -g -O0 -std=c99 -Werror -Wall -Wextra -Wvla -pedantic
 
 libddomainexpansion_a_LFLAGS = -fsanitize=address
 

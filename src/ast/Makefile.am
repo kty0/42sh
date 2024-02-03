@@ -20,7 +20,7 @@ libdast_a_SOURCES =  \
 
 libdast_a_CPPFLAGS = -I$(top_srcdir)/src
 
-libdast_a_CFLAGS = -g -Og -std=c99 -Werror -Wall -Wextra -Wvla -pedantic
+libdast_a_CFLAGS = -g -O0 -std=c99 -Werror -Wall -Wextra -Wvla -pedantic
 
 libdast_a_LFLAGS = -fsanitize=address
 

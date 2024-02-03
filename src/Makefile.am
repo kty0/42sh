@@ -28,9 +28,9 @@ bin_PROGRAMS = 42sh 42debug
 
 42debug_CPPFLAGS = -I%D%
 
-42debug_CFLAGS = -g -Og -std=c99 -Werror -Wall -Wextra -Wvla -pedantic
+42debug_CFLAGS = -g -O0 -std=c99 -Werror -Wall -Wextra -Wvla -pedantic
 
-42debug_LDFLAGS = -fsanitize=address
+42debug_LFLAGS = -fsanitize=address
 
 42debug_LDADD =  \
 	parser/libdparser.a \

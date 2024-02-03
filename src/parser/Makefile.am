@@ -34,7 +34,7 @@ libdparser_a_SOURCES =  \
 
 libdparser_a_CPPFLAGS = -I$(top_srcdir)/src
 
-libdparser_a_CFLAGS = -g -Og -std=c99 -Werror -Wall -Wextra -Wvla -pedantic
+libdparser_a_CFLAGS = -g -O0 -std=c99 -Werror -Wall -Wextra -Wvla -pedantic
 
 libdparser_a_LFLAGS = -fsanitize=address
 
