@@ -62,7 +62,7 @@ testcase_redir()
     rm $F1 2> /dev/null
     rm $F2 2> /dev/null
 
-    env -i bash --posix -c "$file" > "$REF_OUT" 2> "$ERR_REF_OUT"
+    bash --posix -c "$file" > "$REF_OUT" 2> "$ERR_REF_OUT"
     exit_code_ref=$?
 
     [ -s $F1 ]
@@ -75,7 +75,7 @@ testcase_redir()
     rm $F1 2> /dev/null
     rm $F2 2> /dev/null
 
-    env -i $my42sh -c "$file" > "$TEST_OUT" 2> "$ERR_TEST_OUT"
+    $my42sh -c "$file" > "$TEST_OUT" 2> "$ERR_TEST_OUT"
     exit_code_test=$?
 
     [ -s $F1 ]
@@ -126,9 +126,9 @@ testcase_as_arg()
 {
     nb_tested=$(($nb_tested+1))
     file=$(cat $1)
-    env -i bash --posix -c "$file" > "$REF_OUT" 2> "$ERR_REF_OUT"
+    bash --posix -c "$file" > "$REF_OUT" 2> "$ERR_REF_OUT"
     exit_code_ref=$?
-    env -i $my42sh -c "$file" > "$TEST_OUT" 2> "$ERR_TEST_OUT"
+    $my42sh -c "$file" > "$TEST_OUT" 2> "$ERR_TEST_OUT"
     exit_code_test=$?
     diff --color -u "$TEST_OUT" "$REF_OUT" > "$DIFF_OUT"
     exit_diff=$?
@@ -163,9 +163,9 @@ testcase_as_arg()
 testcase_as_script()
 {
     nb_tested=$(($nb_tested+1))
-    env -i bash --posix "$1" > "$REF_OUT" 2> "$ERR_REF_OUT"
+    bash --posix "$1" > "$REF_OUT" 2> "$ERR_REF_OUT"
     exit_code_ref=$?
-    env -i $my42sh $1 > "$TEST_OUT" 2> "$ERR_TEST_OUT"
+    $my42sh $1 > "$TEST_OUT" 2> "$ERR_TEST_OUT"
     exit_code_test=$?
     diff --color -u "$TEST_OUT" "$REF_OUT" > "$DIFF_OUT"
     exit_diff=$?
@@ -201,9 +201,9 @@ testcase_as_script()
 testcase_as_stdin_pipe()
 {
     nb_tested=$(($nb_tested+1))
-    env -i cat "$1" | bash --posix > "$REF_OUT" 2> "$ERR_REF_OUT"
+    cat "$1" | bash --posix > "$REF_OUT" 2> "$ERR_REF_OUT"
     exit_code_ref=$?
-    env -i cat "$1" | $my42sh > "$TEST_OUT" 2> "$ERR_TEST_OUT"
+    cat "$1" | $my42sh > "$TEST_OUT" 2> "$ERR_TEST_OUT"
     exit_code_test=$?
     diff --color -u "$TEST_OUT" "$REF_OUT" > "$DIFF_OUT"
     exit_diff=$?
@@ -239,9 +239,9 @@ testcase_as_stdin_pipe()
 testcase_as_stdin_redir()
 {
     nb_tested=$(($nb_tested+1))
-    env -i bash --posix < "$1" > "$REF_OUT" 2> "$ERR_REF_OUT"
+    bash --posix < "$1" > "$REF_OUT" 2> "$ERR_REF_OUT"
     exit_code_ref=$?
-    env -i $my42sh < "$1" > "$TEST_OUT" 2> "$ERR_TEST_OUT"
+    $my42sh < "$1" > "$TEST_OUT" 2> "$ERR_TEST_OUT"
     exit_code_test=$?
     diff --color -u "$TEST_OUT" "$REF_OUT" > "$DIFF_OUT"
     exit_diff=$?
@@ -277,11 +277,11 @@ testcase_cd()
 {
     nb_tested=$(($nb_tested+1))
 
-    env -i bash --posix < "$1" > "$REF_OUT" 2> "$ERR_REF_OUT"
+    bash --posix < "$1" > "$REF_OUT" 2> "$ERR_REF_OUT"
     exit_code_ref=$?
     old_pwd_ref=$(echo $OLDPWD)
     pwd_ref=$(echo $PWD)
-    env -i $my42sh < "$1" > "$TEST_OUT" 2> "$ERR_TEST_OUT"
+    $my42sh < "$1" > "$TEST_OUT" 2> "$ERR_TEST_OUT"
     exit_code_test=$?
     old_pwd_test=$(echo $OLDPWD)
     pwd_test=$(echo $PWD)
@@ -321,7 +321,7 @@ testcase_cd()
 
 testcase_as_pretty_print()
 {
-    env -i PRETTY=1 $my42sh < "$1" > "$TEST_OUT" 2> "$ERR_TEST_OUT"
+    PRETTY=1 $my42sh < "$1" > "$TEST_OUT" 2> "$ERR_TEST_OUT"
 }
 
 echo -e "\n\n\n  >.> ________________________ ARGS _________________________ <.<\n"
