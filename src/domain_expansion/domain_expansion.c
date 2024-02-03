@@ -264,6 +264,12 @@ static char **split_word(char *str, char **args)
  */
 char **expand_string(char *str, char **args)
 {
+    if (!strcmp(str, ""))
+    {
+        char *res = calloc(1, sizeof(char));
+        return array_append(args, res);
+    }
+
     FILE *file = to_file(str);
     struct string_builder *sb = sb_new();
 
