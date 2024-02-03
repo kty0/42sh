@@ -1,0 +1,2 @@
+var=Mankey
+echo ${var

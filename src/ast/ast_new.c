@@ -26,12 +26,6 @@ struct ast *ast_new_cmd(void)
         errx(1, "failed to create a new cmd ast");
     }
 
-    ast_cmd->exps = calloc(1, sizeof(enum exp_type *));
-    if (ast_cmd->exps == NULL)
-    {
-        errx(1, "failed to create a new cmd ast");
-    }
-
     return new;
 }
 
@@ -126,6 +120,7 @@ struct ast *ast_new(enum ast_type type)
     case AST_UNTIL:
     case AST_OPERATOR:
     case AST_WORD:
+    case AST_ASSIGNMENT:
         return ast_new_basic(type);
     default:
         errx(1, "failed to recognize this new ast type");

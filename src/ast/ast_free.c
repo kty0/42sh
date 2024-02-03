@@ -18,14 +18,8 @@ static void ast_free_cmd(struct ast *ast)
     }
     free(ast_cmd->args);
 
-    if (ast_cmd->exps != NULL)
-    {
-        for (int i = 0; ast_cmd->exps[i] != NULL; i++)
-        {
-            free(ast_cmd->exps[i]);
-        }
-    }
-    free(ast_cmd->exps);
+    ast_free(ast_cmd->redirs);
+    ast_free(ast_cmd->vars);
 
     free(ast);
 }
@@ -110,10 +104,20 @@ static void ast_free_redir(struct ast *ast)
 {
     struct ast_redir *ast_redir = &ast->data.ast_redir;
 
-    ast_free(ast_redir->left);
-    ast_free(ast_redir->right);
+    ast_free(ast_redir->next);
 
     free(ast_redir->file);
+    free(ast);
+}
+
+static void ast_free_assign(struct ast *ast)
+{
+    struct ast_assign *ast_assign = &ast->data.ast_assign;
+
+    ast_free(ast_assign->next);
+
+    free(ast_assign->key);
+    free(ast_assign->value);
     free(ast);
 }
 
@@ -152,6 +156,9 @@ void ast_free(struct ast *ast)
         break;
     case AST_REDIRECTION:
         ast_free_redir(ast);
+        break;
+    case AST_ASSIGNMENT:
+        ast_free_assign(ast);
         break;
     default:
         errx(2, "failed to free the AST");

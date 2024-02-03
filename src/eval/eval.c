@@ -1,3 +1,5 @@
+#define _POSIX_C_SOURCE 200809L
+
 #include "eval.h"
 
 #include <err.h>
@@ -12,6 +14,10 @@
 #include "../ast/ast.h"
 #include "../built_in/built_in.h"
 #include "../domain_expansion/domain_expansion.h"
+#include "../hash_map/hash_map.h"
+
+static int is_env = 0;
+static struct hash_map *hash_map = NULL;
 
 struct eval_functions
 {
@@ -23,43 +29,63 @@ static int eval_if(struct ast *ast)
 {
     struct ast_if *ast_if = &ast->data.ast_if;
 
-    if (eval(ast_if->condition) == 0)
+    if (eval(ast_if->condition, NULL) == 0)
     {
-        return eval(ast_if->then_body);
+        return eval(ast_if->then_body, NULL);
     }
 
-    return eval(ast_if->else_body);
+    return eval(ast_if->else_body, NULL);
 }
 
-static int eval_cmd(struct ast *ast)
+static void free_mat(char **mat)
 {
-    struct ast_cmd *ast_cmd = &ast->data.ast_cmd;
-
-    for (size_t i = 0; ast_cmd->args[i]; i++)
+    for (int i = 0; mat[i] != NULL; i++)
     {
-        expand(&(ast_cmd->args[i]));
+        free(mat[i]);
     }
-    if (strcmp(ast_cmd->args[0], "echo") == 0)
+    free(mat);
+}
+
+int launch_command(struct ast_cmd *ast_cmd)
+{
+    /* Creating a copy of the arguments but expanded */
+    char **new_args = expand(ast_cmd->args, hash_map);
+    if (new_args == NULL)
     {
-        int res = echo(ast_cmd->args);
+        return 2;
+    }
+
+    if (new_args[0] == NULL)
+    {
+        free_mat(new_args);
+        return 0;
+    }
+
+    if (strcmp(new_args[0], "echo") == 0)
+    {
+        int res = echo(new_args);
         fflush(stdout);
+        free_mat(new_args);
         return res;
     }
-    else if (strcmp(ast_cmd->args[0], "true") == 0)
+    else if (strcmp(new_args[0], "true") == 0)
     {
+        free_mat(new_args);
         return my_true();
     }
-    else if (strcmp(ast_cmd->args[0], "false") == 0)
+    else if (strcmp(new_args[0], "false") == 0)
     {
+        free_mat(new_args);
         return my_false();
     }
-    else if (strcmp(ast_cmd->args[0], "cd") == 0)
+    else if (strcmp(new_args[0], "cd") == 0)
     {
-        int res = cd(ast_cmd->args);
+        int res = cd(new_args);
         if (res == 1)
         {
             errx(1, "Usage : cd path/to/directory");
         }
+        free_mat(new_args);
         return res;
     }
     else
@@ -67,13 +93,15 @@ static int eval_cmd(struct ast *ast)
         int pid = fork();
         if (pid == -1)
         {
+            free_mat(new_args);
             return 1;
         }
 
         if (pid == 0)
         {
-            if (execvp(ast_cmd->args[0], ast_cmd->args) == -1)
+            if (execvp(new_args[0], new_args) == -1)
             {
+                free_mat(new_args);
                 errx(127, "missing command");
             }
         }
@@ -81,8 +109,20 @@ static int eval_cmd(struct ast *ast)
         int wstatus;
         waitpid(pid, &wstatus, 0);
 
+        free_mat(new_args);
         return WEXITSTATUS(wstatus);
     }
+}
+
+static int eval_cmd(struct ast *ast)
+{
+    struct ast_cmd *ast_cmd = &ast->data.ast_cmd;
+
+    is_env = ast_cmd->args[0] != NULL;
+
+    eval(ast_cmd->vars, NULL);
+
+    return eval_redir(ast_cmd->redirs, ast_cmd);
 }
 
 static int eval_list(struct ast *ast)
@@ -93,7 +133,7 @@ static int eval_list(struct ast *ast)
 
     for (int i = 0; ast_list->children[i] != NULL; i++)
     {
-        res = eval(ast_list->children[i]);
+        res = eval(ast_list->children[i], NULL);
     }
 
     return res;
@@ -103,7 +143,7 @@ static int eval_not(struct ast *ast)
 {
     struct ast_not *ast_not = &ast->data.ast_not;
 
-    return !eval(ast_not->child);
+    return !eval(ast_not->child, NULL);
 }
 
 static int exec_fork(struct ast *ast, int fds[2], enum side s)
@@ -130,7 +170,7 @@ static int exec_fork(struct ast *ast, int fds[2], enum side s)
     close(fds[0]);
     close(fds[1]);
 
-    int res = eval(ast);
+    int res = eval(ast, NULL);
 
     exit(res);
 }
@@ -141,7 +181,7 @@ static int eval_pipe(struct ast *ast)
 
     if (ast_pipe->child == NULL)
     {
-        return eval(ast_pipe->command);
+        return eval(ast_pipe->command, NULL);
     }
 
     int fds[2];
@@ -169,9 +209,9 @@ static int eval_while(struct ast *ast)
 
     int res = 0;
 
-    while (!eval(ast_while->condition))
+    while (!eval(ast_while->condition, NULL))
     {
-        res = eval(ast_while->body);
+        res = eval(ast_while->body, NULL);
     }
 
     return res;
@@ -183,9 +223,9 @@ static int eval_until(struct ast *ast)
 
     int res = 0;
 
-    while (eval(ast_until->condition))
+    while (eval(ast_until->condition, NULL))
     {
-        res = eval(ast_until->body);
+        res = eval(ast_until->body, NULL);
     }
 
     return res;
@@ -195,7 +235,7 @@ static int eval_ope(struct ast *ast)
 {
     struct ast_ope *ast_ope = &ast->data.ast_ope;
 
-    int res = eval(ast_ope->left);
+    int res = eval(ast_ope->left, NULL);
 
     if (ast_ope->right != NULL)
     {
@@ -206,7 +246,7 @@ static int eval_ope(struct ast *ast)
                 return res;
             }
 
-            return eval(ast_ope->right);
+            return eval(ast_ope->right, NULL);
         }
         else
         {
@@ -215,27 +255,64 @@ static int eval_ope(struct ast *ast)
                 return res;
             }
 
-            return eval(ast_ope->right);
+            return eval(ast_ope->right, NULL);
         }
     }
 
     return res;
 }
 
+static int eval_assign(struct ast *ast)
+{
+    struct ast_assign *ast_assign = &ast->data.ast_assign;
+
+    /* Weird trick to expand a single string easily */
+    char **array = calloc(1, sizeof(char *));
+    array = expand_string(ast_assign->value, array);
+    if (array == NULL)
+    {
+        return 1;
+    }
+    free(ast_assign->value);
+    ast_assign->value = array[0];
+    free(array);
+
+    if (is_env)
+    {
+        return setenv(ast_assign->key, ast_assign->value, 1) == -1 ? 1 : 0;
+    }
+
+    int updated = 0;
+
+    hash_map_insert(hash_map, ast_assign->key, ast_assign->value, &updated);
+
+    return eval(ast_assign->next, NULL);
+}
+
 static struct eval_functions eval_funs[] = {
-    { AST_IF, eval_if },        { AST_NOT, eval_not },
-    { AST_LIST, eval_list },    { AST_PIPE, eval_pipe },
-    { AST_WHILE, eval_while },  { AST_UNTIL, eval_until },
-    { AST_OPERATOR, eval_ope }, { AST_REDIRECTION, eval_redir },
-    { AST_COMMAND, eval_cmd }
+    { AST_IF, eval_if },
+    { AST_NOT, eval_not },
+    { AST_LIST, eval_list },
+    { AST_PIPE, eval_pipe },
+    { AST_WHILE, eval_while },
+    { AST_UNTIL, eval_until },
+    { AST_OPERATOR, eval_ope },
+    { AST_COMMAND, eval_cmd },
+    { AST_ASSIGNMENT, eval_assign },
 };
 
-int eval(struct ast *ast)
+int eval(struct ast *ast, struct hash_map *h)
 {
     if (ast == NULL)
     {
         return 0;
     }
+
+    if (hash_map == NULL)
+    {
+        hash_map = h;
+    }
+
     for (size_t i = 0; sizeof(eval_funs) / sizeof(struct eval_functions); i++)
     {
         if (ast->type == eval_funs[i].type)
@@ -243,5 +320,6 @@ int eval(struct ast *ast)
             return eval_funs[i].eval_funs(ast);
         }
     }
+
     err(1, "invalid node in AST");
 }

@@ -1,0 +1,1 @@
+var='Rattata Alola'

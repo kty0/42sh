@@ -3,15 +3,30 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "../ast/ast.h"
 #include "../ast/ast_new.h"
 #include "../lexer/lexer.h"
+#include "../lexer/token.h"
 #include "parser.h"
 #include "parser_command.h"
 #include "parser_if.h"
 #include "parser_io.h"
 #include "parser_loop.h"
+
+static int is_assignment(char *value)
+{
+    for (int i = 0; value[i] != '\0'; i++)
+    {
+        if (value[i] == '=')
+        {
+            return 1;
+        }
+    }
+
+    return 0;
+}
 
 enum parser_status parse_list(struct ast **res, struct lexer *lexer)
 {
@@ -75,7 +90,7 @@ enum parser_status parse_and_or(struct ast **res, struct lexer *lexer)
     {
         tok = lexer_pop_free(lexer);
 
-        if (parse_command(res, lexer) != P_OK)
+        if (parse_pipeline(res, lexer) != P_OK)
         {
             ast_free(node);
 
@@ -180,7 +195,36 @@ enum parser_status parse_element(struct ast **res, struct lexer *lexer)
     struct ast_word *ast_word = &ast->data.ast_word;
 
     ast_word->arg = tok.value;
-    ast_word->exp = tok.exp;
+    *res = ast;
+
+    return P_OK;
+}
+
+/* Upon finding an assignment splitting it around the '=' to create an
+ * ast_assign node
+ */
+static enum parser_status parse_variable(struct ast **res, struct lexer *lexer)
+{
+    struct token tok = lexer_pop(lexer);
+
+    int len = strlen(tok.value);
+
+    int i = 0;
+    for (; tok.value[i] != '='; i++)
+    {
+        continue;
+    }
+
+    tok.value[i] = '\0';
+
+    char *value = calloc(len - i, sizeof(char));
+    strcpy(value, tok.value + i + 1);
+
+    struct ast *ast = ast_new(AST_ASSIGNMENT);
+    struct ast_assign *ast_assign = &ast->data.ast_assign;
+    ast_assign->key = tok.value;
+    ast_assign->value = value;
+
     *res = ast;
 
     return P_OK;
@@ -188,5 +232,17 @@ enum parser_status parse_element(struct ast **res, struct lexer *lexer)
 
 enum parser_status parse_prefix(struct ast **res, struct lexer *lexer)
 {
-    return parse_redirection(res, lexer);
+    struct token tok = lexer_peek(lexer);
+
+    if (parse_redirection(res, lexer) == P_OK)
+    {
+        return P_OK;
+    }
+
+    if (tok.type == TOKEN_WORD && is_assignment(tok.value))
+    {
+        return parse_variable(res, lexer);
+    }
+
+    return P_KO;
 }

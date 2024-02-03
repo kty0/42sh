@@ -7,13 +7,13 @@
 #include "token.h"
 
 static struct token tokens[] = {
-    { TOKEN_SEMICOLON, NORMAL, ";" }, { TOKEN_NOT, NORMAL, "!" },
-    { TOKEN_PIPE, NORMAL, "|" },      { TOKEN_AND_IF, NORMAL, "&&" },
-    { TOKEN_OR_IF, NORMAL, "||" },    { TOKEN_NEWLINE, NORMAL, "\n" },
-    { TOKEN_DGREAT, NORMAL, ">>" },   { TOKEN_LESSAND, NORMAL, "<&" },
-    { TOKEN_GREATAND, NORMAL, ">&" }, { TOKEN_LESSGREAT, NORMAL, "<>" },
-    { TOKEN_CLOBBER, NORMAL, ">|" },  { TOKEN_GREAT, NORMAL, ">" },
-    { TOKEN_LESS, NORMAL, "<" }
+    { TOKEN_SEMICOLON, ";" }, { TOKEN_NOT, "!" },
+    { TOKEN_PIPE, "|" },      { TOKEN_AND_IF, "&&" },
+    { TOKEN_OR_IF, "||" },    { TOKEN_NEWLINE, "\n" },
+    { TOKEN_DGREAT, ">>" },   { TOKEN_LESSAND, "<&" },
+    { TOKEN_GREATAND, ">&" }, { TOKEN_LESSGREAT, "<>" },
+    { TOKEN_CLOBBER, ">|" },  { TOKEN_GREAT, ">" },
+    { TOKEN_LESS, "<" }
 };
 
 static int len = 0;

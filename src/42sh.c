@@ -13,6 +13,8 @@
 #include "parser/parser.h"
 #include "quarantedeuxsh.h"
 
+#define HASH_MAP_SIZE 42
+
 /**
  *  \brief  From a given source, loops between parsing an expr and evaluating it
  *  \fn     static int parse_eval(FILE *stream, enum source source);
@@ -25,9 +27,11 @@ static int parse_eval(FILE *stream, enum source source)
     struct lexer *lexer = lexer_new(stream);
     struct ast *ast;
 
-    struct token tok = lexer_peek(lexer);
-
     int res = 0;
+
+    struct hash_map *hash_map = hash_map_init(HASH_MAP_SIZE);
+
+    struct token tok = lexer_peek(lexer);
 
     while (tok.type != TOKEN_EOF && tok.type != TOKEN_ERROR)
     {
@@ -35,6 +39,7 @@ static int parse_eval(FILE *stream, enum source source)
         {
             lexer_free(lexer);
             ast_free(ast);
+            hash_map_free(hash_map);
             errx(2, "mmh no gud, parsing failed somehow");
         }
 
@@ -43,12 +48,15 @@ static int parse_eval(FILE *stream, enum source source)
             ast_print(ast);
             puts("");
         }
-        res = eval(ast);
+
+        res = eval(ast, hash_map);
 
         ast_free(ast);
 
         tok = lexer_peek(lexer);
     }
+
+    hash_map_free(hash_map);
 
     if (source != STDIN)
     {
