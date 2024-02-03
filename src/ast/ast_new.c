@@ -50,6 +50,25 @@ struct ast *ast_new_list(void)
     return new;
 }
 
+struct ast *ast_new_for(void)
+{
+    struct ast *new = calloc(1, sizeof(struct ast));
+    if (new == NULL)
+    {
+        errx(1, "failed to create a new for ast");
+    }
+    new->type = AST_FOR;
+
+    struct ast_for *ast_for = &new->data.ast_for;
+
+    ast_for->list = calloc(1, sizeof(char **));
+    if (ast_for->list == NULL)
+    {
+        errx(1, "failed to create a new for ast");
+    }
+    return new;
+}
+
 struct ast *ast_new_redir(enum token_type type)
 {
     struct ast *new = calloc(1, sizeof(struct ast));
@@ -113,6 +132,8 @@ struct ast *ast_new(enum ast_type type)
         return ast_new_cmd();
     case AST_LIST:
         return ast_new_list();
+    case AST_FOR:
+        return ast_new_for();
     case AST_IF:
     case AST_NOT:
     case AST_PIPE:

@@ -240,6 +240,31 @@ static int eval_until(struct ast *ast)
     return res;
 }
 
+static int eval_for(struct ast *ast)
+{
+    struct ast_for *ast_for = &ast->data.ast_for;
+
+    int res = 0;
+    char **array = NULL;
+    int updated = 0;
+
+    for (size_t i = 0; ast_for->list[i]; i++)
+    {
+        array = calloc(1, sizeof(char *));
+        array = expand_string(ast_for->list[i], array);
+        if (array == NULL)
+        {
+            return 1;
+        }
+        free(ast_for->list[i]);
+        ast_for->list[i] = array[0];
+        free(array);
+        hash_map_insert(hash_map, ast_for->var, ast_for->list[i], &updated);
+        res = eval(ast_for->body, NULL);
+    }
+    return res;
+}
+
 static int eval_ope(struct ast *ast)
 {
     struct ast_ope *ast_ope = &ast->data.ast_ope;
@@ -299,15 +324,12 @@ static int eval_assign(struct ast *ast)
 }
 
 static struct eval_functions eval_funs[] = {
-    { AST_IF, eval_if },
-    { AST_NOT, eval_not },
-    { AST_LIST, eval_list },
-    { AST_PIPE, eval_pipe },
-    { AST_WHILE, eval_while },
-    { AST_UNTIL, eval_until },
-    { AST_OPERATOR, eval_ope },
-    { AST_COMMAND, eval_cmd },
-    { AST_ASSIGNMENT, eval_assign },
+    { AST_IF, eval_if },        { AST_NOT, eval_not },
+    { AST_LIST, eval_list },    { AST_PIPE, eval_pipe },
+    { AST_WHILE, eval_while },  { AST_UNTIL, eval_until },
+    { AST_OPERATOR, eval_ope }, { AST_ASSIGNMENT, eval_assign },
+
+    { AST_COMMAND, eval_cmd },  { AST_FOR, eval_for },
 };
 
 int eval(struct ast *ast, struct hash_map *h)
@@ -322,7 +344,8 @@ int eval(struct ast *ast, struct hash_map *h)
         hash_map = h;
     }
 
-    for (size_t i = 0; sizeof(eval_funs) / sizeof(struct eval_functions); i++)
+    for (size_t i = 0; i < sizeof(eval_funs) / sizeof(struct eval_functions);
+         i++)
     {
         if (ast->type == eval_funs[i].type)
         {

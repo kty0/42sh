@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "ast/ast.h"
+#include "ast/ast_print.h"
 #include "domain_expansion/domain_expansion.h"
 #include "eval/eval.h"
 #include "lexer/lexer.h"
