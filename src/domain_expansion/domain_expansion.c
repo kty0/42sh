@@ -89,6 +89,11 @@ static int is_name(char c)
     return c == '_' || isdigit(c) || isalpha(c);
 }
 
+static int is_reserved(char c)
+{
+    return c == '@' || c == '*' || c == '?' || c == '$' || c == '#';
+}
+
 /**
  *  \brief  Function to expand variables
  *  \fn     static char expand_var(FILE *file, struct string_builder *sb)
@@ -128,6 +133,11 @@ static char expand_var(FILE *file, struct string_builder *sb)
                 sb_append(c, key_sb);
                 c = getc(file);
             }
+        }
+        else if (is_reserved(c))
+        {
+            sb_append(c, key_sb);
+            c = getc(file);
         }
         else
         {

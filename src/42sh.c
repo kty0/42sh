@@ -16,6 +16,42 @@
 
 #define HASH_MAP_SIZE 42
 
+static int n_arg = 0;
+
+/* Sets up the # variable */
+static void set_argc_var(struct hash_map *hash_map, enum source source)
+{
+    char *value = calloc(12, sizeof(char));
+
+    char *key = calloc(2, sizeof(char));
+    key[0] = '#';
+
+    switch (source)
+    {
+    case ARGV:
+        if (n_arg <= 3)
+        {
+            sprintf(value, "%d", 0);
+        }
+        else
+        {
+            sprintf(value, "%d", n_arg - 4);
+        }
+        hash_map_insert_op(hash_map, key, value);
+        break;
+    case SCRIPT:
+        sprintf(value, "%d", n_arg - 2);
+        hash_map_insert_op(hash_map, key, value);
+        break;
+    case STDIN:
+        sprintf(value, "%d", 0);
+        hash_map_insert_op(hash_map, key, value);
+        break;
+    default:
+        break;
+    }
+}
+
 /**
  *  \brief  From a given source, loops between parsing an expr and evaluating it
  *  \fn     static int parse_eval(FILE *stream, enum source source);
@@ -31,6 +67,8 @@ static int parse_eval(FILE *stream, enum source source)
     int res = 0;
 
     struct hash_map *hash_map = hash_map_init(HASH_MAP_SIZE);
+
+    set_argc_var(hash_map, source);
 
     struct token tok = lexer_peek(lexer);
 
@@ -70,6 +108,8 @@ static int parse_eval(FILE *stream, enum source source)
 
 int main(int argc, char *argv[])
 {
+    n_arg = argc;
+
     /* case when no argument is given: reading from stdin */
 
     if (argc == 1)
