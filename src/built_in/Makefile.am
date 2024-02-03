@@ -4,6 +4,7 @@ libbuilt_in_a_SOURCES =  \
     echo.c \
     true_false.c \
     cd.c \
+    exit.c \
     built_in.h
 
 libbuilt_in_a_CPPFLAGS = -I$(top_srcdir)/src
@@ -14,6 +15,7 @@ libdbuilt_in_a_SOURCES =  \
     echo.c \
     true_false.c \
     cd.c \
+    exit.c \
     built_in.h
 
 libdbuilt_in_a_CPPFLAGS = -I$(top_srcdir)/src

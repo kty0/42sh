@@ -88,6 +88,15 @@ int launch_command(struct ast_cmd *ast_cmd)
         free_mat(new_args);
         return res;
     }
+    else if (strcmp(ast_cmd->args[0], "exit") == 0)
+    {
+        int res = my_exit(ast_cmd->args);
+        if (res == -1)
+        {
+            errx(1, "Usage : exit <0-255>");
+        }
+        return res;
+    }
     else
     {
         int pid = fork();
