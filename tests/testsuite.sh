@@ -8,6 +8,12 @@ ERR_TEST_OUT="/tmp/err_test.out"
 
 F1="file1"
 F2="file2"
+F3="file3"
+F4="file4"
+
+RFILE="ref_files/file5"
+RFILE2="ref_files/file6"
+
 RTEST1="/tmp/rtest1.out"
 RTEST2="/tmp/rtest2.out"
 RREF1="/tmp/rref1.out"
@@ -41,9 +47,11 @@ do
     fi
 done
 
-
 nb_tested=0
 nb_ko=0
+
+cp $RFILE $F3
+cp $RFILE2 $F4
 
 testcase_redir()
 {
@@ -54,7 +62,7 @@ testcase_redir()
     rm $F1 2> /dev/null
     rm $F2 2> /dev/null
 
-    bash --posix -c "$file" > "$REF_OUT" 2> "$ERR_REF_OUT"
+    env -i bash --posix -c "$file" > "$REF_OUT" 2> "$ERR_REF_OUT"
     exit_code_ref=$?
 
     [ -s $F1 ]
@@ -67,7 +75,7 @@ testcase_redir()
     rm $F1 2> /dev/null
     rm $F2 2> /dev/null
 
-    $my42sh -c "$file" > "$TEST_OUT" 2> "$ERR_TEST_OUT"
+    env -i $my42sh -c "$file" > "$TEST_OUT" 2> "$ERR_TEST_OUT"
     exit_code_test=$?
 
     [ -s $F1 ]
@@ -107,10 +115,10 @@ testcase_redir()
             fi
         fi
         nb_ko=$(($nb_ko + 1))
-        echo "  ________________________________________________________________\n"
+        echo -e "  ________________________________________________________________\n"
     elif [ $show_suc -eq 0 ]; then
         echo -e "${GREEN}[UwU]${NC} $1"
-        echo "  ________________________________________________________________\n"
+        echo -e "  ________________________________________________________________\n"
     fi
 }
 
@@ -118,9 +126,9 @@ testcase_as_arg()
 {
     nb_tested=$(($nb_tested+1))
     file=$(cat $1)
-    bash --posix -c "$file" > "$REF_OUT" 2> "$ERR_REF_OUT"
+    env -i bash --posix -c "$file" > "$REF_OUT" 2> "$ERR_REF_OUT"
     exit_code_ref=$?
-    $my42sh -c "$file" > "$TEST_OUT" 2> "$ERR_TEST_OUT"
+    env -i $my42sh -c "$file" > "$TEST_OUT" 2> "$ERR_TEST_OUT"
     exit_code_test=$?
     diff --color -u "$TEST_OUT" "$REF_OUT" > "$DIFF_OUT"
     exit_diff=$?
@@ -145,19 +153,19 @@ testcase_as_arg()
             fi
         fi
         nb_ko=$(($nb_ko + 1))
-        echo "  ________________________________________________________________\n"
+        echo -e "  ________________________________________________________________\n"
     elif [ $show_suc -eq 0 ]; then
         echo -e "${GREEN}[UwU]${NC} $1"
-        echo "  ________________________________________________________________\n"
+        echo -e "  ________________________________________________________________\n"
     fi
 }
 
 testcase_as_script()
 {
     nb_tested=$(($nb_tested+1))
-    bash --posix "$1" > "$REF_OUT" 2> "$ERR_REF_OUT"
+    env -i bash --posix "$1" > "$REF_OUT" 2> "$ERR_REF_OUT"
     exit_code_ref=$?
-    $my42sh $1 > "$TEST_OUT" 2> "$ERR_TEST_OUT"
+    env -i $my42sh $1 > "$TEST_OUT" 2> "$ERR_TEST_OUT"
     exit_code_test=$?
     diff --color -u "$TEST_OUT" "$REF_OUT" > "$DIFF_OUT"
     exit_diff=$?
@@ -182,10 +190,10 @@ testcase_as_script()
             fi
         fi
         nb_ko=$(($nb_ko + 1))
-        echo "  ________________________________________________________________\n"
+        echo -e "  ________________________________________________________________\n"
     elif [ $show_suc -eq 0 ]; then
         echo -e "${GREEN}[UwU]${NC} $1"
-        echo "  ________________________________________________________________\n"
+        echo -e "  ________________________________________________________________\n"
     fi
 }
 
@@ -193,9 +201,9 @@ testcase_as_script()
 testcase_as_stdin_pipe()
 {
     nb_tested=$(($nb_tested+1))
-    cat "$1" | bash --posix > "$REF_OUT" 2> "$ERR_REF_OUT"
+    env -i cat "$1" | bash --posix > "$REF_OUT" 2> "$ERR_REF_OUT"
     exit_code_ref=$?
-    cat "$1" | $my42sh > "$TEST_OUT" 2> "$ERR_TEST_OUT"
+    env -i cat "$1" | $my42sh > "$TEST_OUT" 2> "$ERR_TEST_OUT"
     exit_code_test=$?
     diff --color -u "$TEST_OUT" "$REF_OUT" > "$DIFF_OUT"
     exit_diff=$?
@@ -220,10 +228,10 @@ testcase_as_stdin_pipe()
             fi
         fi
         nb_ko=$(($nb_ko + 1))
-        echo "  ________________________________________________________________\n"
+        echo -e "  ________________________________________________________________\n"
     elif [ $show_suc -eq 0 ]; then
         echo -e "${GREEN}[UwU]${NC} $1"
-        echo "  ________________________________________________________________\n"
+        echo -e "  ________________________________________________________________\n"
     fi
 
 }
@@ -231,9 +239,9 @@ testcase_as_stdin_pipe()
 testcase_as_stdin_redir()
 {
     nb_tested=$(($nb_tested+1))
-    bash --posix < "$1" > "$REF_OUT" 2> "$ERR_REF_OUT"
+    env -i bash --posix < "$1" > "$REF_OUT" 2> "$ERR_REF_OUT"
     exit_code_ref=$?
-    $my42sh < "$1" > "$TEST_OUT" 2> "$ERR_TEST_OUT"
+    env -i $my42sh < "$1" > "$TEST_OUT" 2> "$ERR_TEST_OUT"
     exit_code_test=$?
     diff --color -u "$TEST_OUT" "$REF_OUT" > "$DIFF_OUT"
     exit_diff=$?
@@ -258,14 +266,65 @@ testcase_as_stdin_redir()
             fi
         fi
         nb_ko=$(($nb_ko + 1))
-        echo "  ________________________________________________________________\n"
+        echo -e "  ________________________________________________________________\n"
     elif [ $show_suc -eq 0 ]; then
         echo -e "${GREEN}[UwU]${NC} $1"
-        echo "  ________________________________________________________________\n"
+        echo -e "  ________________________________________________________________\n"
     fi
 }
 
-echo "\n\n\n  >.> ________________________ ARGS _________________________ <.<\n"
+testcase_cd()
+{
+    nb_tested=$(($nb_tested+1))
+
+    env -i bash --posix < "$1" > "$REF_OUT" 2> "$ERR_REF_OUT"
+    exit_code_ref=$?
+    old_pwd_ref=$(echo $OLDPWD)
+    pwd_ref=$(echo $PWD)
+    env -i $my42sh < "$1" > "$TEST_OUT" 2> "$ERR_TEST_OUT"
+    exit_code_test=$?
+    old_pwd_test=$(echo $OLDPWD)
+    pwd_test=$(echo $PWD)
+    diff --color -u "$TEST_OUT" "$REF_OUT" > "$DIFF_OUT"
+    exit_diff=$?
+
+    err_diff=1
+    if [ $(wc -c < $ERR_REF_OUT) -eq 0 ] && [ $(wc -c < $ERR_TEST_OUT) -eq 0 ]; then
+        err_diff=0
+    elif [ $(wc -c < $ERR_REF_OUT) -ne 0 ] && [ $(wc -c < $ERR_TEST_OUT) -ne 0 ]; then
+        err_diff=0
+    fi
+
+    if [ $exit_diff -eq 1 ] \
+        || [ $exit_code_ref -ne $exit_code_test ] \
+        || [ $err_diff -eq 1 ] \
+        || [ $old_pwd_ref != $old_pwd_test ] \
+        || [ $pwd_ref != $pwd_test ]; then
+        echo -e "${RED}[T-T]${NC} $1"
+        if [ $do_print -eq 0 ]; then
+            cat "$DIFF_OUT"
+            if [ $exit_code_ref -ne $exit_code_test ]; then
+                echo "Expected exit code: $exit_code_ref"
+                echo "But got exit code: $exit_code_test"
+            fi
+            if [ $show_err -eq 1 ]; then
+                cat "$ERR_TEST_OUT"
+            fi
+        fi
+        nb_ko=$(($nb_ko + 1))
+        echo -e "  ________________________________________________________________\n"
+    elif [ $show_suc -eq 0 ]; then
+        echo -e "${GREEN}[UwU]${NC} $1"
+        echo -e "  ________________________________________________________________\n"
+    fi
+}
+
+testcase_as_pretty_print()
+{
+    env -i PRETTY=1 $my42sh < "$1" > "$TEST_OUT" 2> "$ERR_TEST_OUT"
+}
+
+echo -e "\n\n\n  >.> ________________________ ARGS _________________________ <.<\n"
 #tests for args " -c"
 
 for file in $(find "piscine-scripts" -name "*.sh"); do
@@ -280,11 +339,21 @@ for file in $(find "step2/" -name "*.sh"); do
     testcase_as_arg "$file"
 done
 
-for file in $(find "redirections/" -name "*.sh"); do
+#tests for redirections( <,>,<>,<&,>&,>|,<<)
+
+for file in $(find "redirections/" -name ".sh"); do
     testcase_redir "$file"
 done
 
-echo "\n\n\n  >.> ________________________ SCRIPTS _________________________ <.<\n"
+for file in $(find "step3/builtin-scripts/cd/" -name "*.sh"); do
+    testcase_cd "$file"
+done
+
+for file in $(find "step3/builtin-scripts/exit" -name "*.dh"); do
+    testcase_as_arg "$file"
+done
+
+echo  -e "\n\n\n  >.> ________________________ SCRIPTS _________________________ <.<\n"
 #tests for scripts
 
 for file in $(find "piscine-scripts/" -name "*.sh"); do
@@ -299,7 +368,11 @@ for file in $(find "step2/" -name "*.sh"); do
     testcase_as_script "$file"
 done
 
-echo "\n\n\n  >.> ________________________ STDIN _________________________ <.<\n"
+for file in $(find "step3/builtin-scripts/exit/" -name "*.dh"); do
+    testcase_as_script "$file"
+done
+
+echo -e "\n\n\n  >.> ________________________ STDIN _________________________ <.<\n"
 #tests for stdin
 
 for file in $(find "piscine-scripts/" -name "*.sh"); do
@@ -311,6 +384,10 @@ for file in $(find "step1/" -name "*.sh"); do
 done
 
 for file in $(find "step2/" -name "*.sh"); do
+    testcase_as_stdin_pipe "$file"
+done
+
+for file in $(find "step3/builtin-scripts/exit/" -name "*.sh"); do
     testcase_as_stdin_pipe "$file"
 done
 
@@ -327,5 +404,37 @@ done
 for file in $(find "step2/" -name "*.sh"); do
     testcase_as_stdin_redir "$file"
 done
+
+for file in $(find "step3/builtin-scripts/exit/" -name "*.sh"); do
+    testcase_as_stdin_redir "$file"
+done
+
+#echo -e "\n\n\n  >.> ___________________PRETTY_PRINT_________________________ <.<\n"
+
+for file in $(find "piscine-scripts" -name "*.sh"); do
+    testcase_as_pretty_print "$file"
+done
+
+for file in $(find "step1/" -name "*.sh"); do
+    testcase_as_pretty_print "$file"
+done
+
+for file in $(find "step2/" -name "*.sh"); do
+    testcase_as_pretty_print "$file"
+done
+
+for file in $(find "step3/" -name "*.sh"); do
+    testcase_as_pretty_print "$file"
+done
+
+for file in $(find "redirections/" -name "*.sh"); do
+    testcase_as_pretty_print "$file"
+done
+
+rm $F1
+rm $F2
+
+rm $F3
+rm $F4
 
 echo -e "Recap: Tested: ${BLUE}${nb_tested}${NC} | Passed: ${GREEN}$(($nb_tested - $nb_ko))${NC} | Failed: ${RED}${nb_ko}${NC} | Failure: ${RED}$(($nb_ko * 100 / $nb_tested))${NC}%"

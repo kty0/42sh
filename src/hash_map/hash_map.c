@@ -108,29 +108,6 @@ void hash_map_free(struct hash_map *hash_map)
     free(hash_map);
 }
 
-void hash_map_dump(struct hash_map *hash_map)
-{
-    for (size_t i = 0; i < hash_map->size; i++)
-    {
-        struct pair_list *tmp = hash_map->data[i];
-
-        while (tmp != NULL)
-        {
-            printf("%s: %s", tmp->key, tmp->value);
-            tmp = tmp->next;
-
-            if (tmp == NULL)
-            {
-                printf("\n");
-            }
-            else
-            {
-                printf(", ");
-            }
-        }
-    }
-}
-
 char *hash_map_get(struct hash_map *hash_map, char *key)
 {
     if (hash_map == NULL || hash_map->size == 0)
@@ -152,41 +129,4 @@ char *hash_map_get(struct hash_map *hash_map, char *key)
     }
 
     return NULL;
-}
-
-int hash_map_remove(struct hash_map *hash_map, char *key)
-{
-    if (hash_map == NULL || hash_map->size == 0)
-    {
-        return 0;
-    }
-
-    size_t i = hash(key) % hash_map->size;
-
-    struct pair_list *prev = NULL;
-    struct pair_list *cur = hash_map->data[i];
-
-    while (cur != NULL)
-    {
-        if (strcmp(cur->key, key) == 0)
-        {
-            if (prev == NULL)
-            {
-                hash_map->data[i] = cur->next;
-            }
-            else
-            {
-                prev->next = cur->next;
-            }
-
-            free(cur);
-
-            return 1;
-        }
-
-        prev = cur;
-        cur = cur->next;
-    }
-
-    return 0;
 }
