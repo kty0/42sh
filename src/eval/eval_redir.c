@@ -1,6 +1,5 @@
 #include <err.h>
 #include <fcntl.h>
-#include <limits.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -79,10 +78,14 @@ static int eval_redir_anyand(struct ast_redir *ast_redir)
         return 1;
     }
 
-    long fdsrc = strtol(ast_redir->file, NULL, 10);
-    if (fdsrc == LONG_MIN)
+    int fdsrc = 0;
+    if (strcmp(ast_redir->file, "0"))
     {
-        errx(1, "source file descriptor is weird");
+        fdsrc = atoi(ast_redir->file);
+        if (fdsrc == 0)
+        {
+            errx(1, "source file descriptor is weird");
+        }
     }
 
     /* Overwriting the fd with the new one */
