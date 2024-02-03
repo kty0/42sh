@@ -46,6 +46,29 @@ static void free_mat(char **mat)
     free(mat);
 }
 
+static int launch_execvp(char **new_args)
+{
+    int pid = fork();
+    if (pid == -1)
+    {
+        errx(1, "forking failed somehow");
+    }
+
+    if (pid == 0)
+    {
+        if (execvp(new_args[0], new_args) == -1)
+        {
+            free_mat(new_args);
+            errx(127, "missing command");
+        }
+    }
+
+    int wstatus;
+    waitpid(pid, &wstatus, 0);
+
+    return WEXITSTATUS(wstatus);
+}
+
 int launch_command(struct ast_cmd *ast_cmd)
 {
     /* Creating a copy of the arguments but expanded */
@@ -55,72 +78,57 @@ int launch_command(struct ast_cmd *ast_cmd)
         return 2;
     }
 
+    int res = 0;
+
     if (new_args[0] == NULL)
     {
         free_mat(new_args);
-        return 0;
-    }
-
-    if (strcmp(new_args[0], "echo") == 0)
-    {
-        int res = echo(new_args);
-        fflush(stdout);
-        free_mat(new_args);
         return res;
+    }
+    else if (strcmp(new_args[0], "echo") == 0)
+    {
+        res = echo(new_args);
+        fflush(stdout);
     }
     else if (strcmp(new_args[0], "true") == 0)
     {
-        free_mat(new_args);
-        return my_true();
+        res = my_true();
     }
     else if (strcmp(new_args[0], "false") == 0)
     {
-        free_mat(new_args);
-        return my_false();
+        res = my_false();
     }
     else if (strcmp(new_args[0], "cd") == 0)
     {
-        int res = cd(new_args);
+        res = cd(new_args);
         if (res == 1)
         {
-            errx(1, "Usage : cd path/to/directory");
+            errx(1, "usage: cd path/to/directory");
         }
-        free_mat(new_args);
-        return res;
     }
-    else if (strcmp(ast_cmd->args[0], "exit") == 0)
+    else if (strcmp(new_args[0], "exit") == 0)
     {
-        int res = my_exit(ast_cmd->args);
+        res = my_exit(new_args);
         if (res == -1)
         {
-            errx(1, "Usage : exit <0-255>");
+            errx(1, "usage: exit <0-255>");
         }
-        return res;
     }
     else
     {
-        int pid = fork();
-        if (pid == -1)
-        {
-            free_mat(new_args);
-            return 1;
-        }
-
-        if (pid == 0)
-        {
-            if (execvp(new_args[0], new_args) == -1)
-            {
-                free_mat(new_args);
-                errx(127, "missing command");
-            }
-        }
-
-        int wstatus;
-        waitpid(pid, &wstatus, 0);
-
-        free_mat(new_args);
-        return WEXITSTATUS(wstatus);
+        res = launch_execvp(new_args);
     }
+
+    char *key = calloc(2, sizeof(char));
+    key[0] = '?';
+    char *value = calloc(4, sizeof(char));
+    sprintf(value, "%d", res);
+
+    hash_map_insert(hash_map, key, value);
+
+    free_mat(new_args);
+
+    return res;
 }
 
 static int eval_cmd(struct ast *ast)
@@ -246,7 +254,6 @@ static int eval_for(struct ast *ast)
 
     int res = 0;
     char **array = NULL;
-    int updated = 0;
 
     for (size_t i = 0; ast_for->list[i]; i++)
     {
@@ -259,7 +266,7 @@ static int eval_for(struct ast *ast)
         free(ast_for->list[i]);
         ast_for->list[i] = array[0];
         free(array);
-        hash_map_insert(hash_map, ast_for->var, ast_for->list[i], &updated);
+        hash_map_insert(hash_map, ast_for->var, ast_for->list[i]);
         res = eval(ast_for->body, NULL);
     }
     return res;
@@ -316,9 +323,7 @@ static int eval_assign(struct ast *ast)
         return setenv(ast_assign->key, ast_assign->value, 1) == -1 ? 1 : 0;
     }
 
-    int updated = 0;
-
-    hash_map_insert(hash_map, ast_assign->key, ast_assign->value, &updated);
+    hash_map_insert(hash_map, ast_assign->key, ast_assign->value);
 
     return eval(ast_assign->next, NULL);
 }
