@@ -16,7 +16,7 @@ libdlexer_a_SOURCES =  \
 
 libdlexer_a_CPPFLAGS = -I$(top_srcdir)/src
 
-libdlexer_a_CFLAGS = -g -Og -std=c99 -Werror -Wall -Wextra -Wvla -pedantic
+libdlexer_a_CFLAGS = -g -O0 -std=c99 -Werror -Wall -Wextra -Wvla -pedantic
 
 libdlexer_a_LFLAGS = -fsanitize=address
 
