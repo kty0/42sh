@@ -20,7 +20,7 @@ static int is_reserved(char *value)
         || !strcmp(value, "then") || !strcmp(value, "do")
         || !strcmp(value, "while") || !strcmp(value, "until")
         || !strcmp(value, "done") || !strcmp(value, "else")
-        || !strcmp(value, "elif") || !strcmp(value, "!");
+        || !strcmp(value, "elif") || !strcmp(value, "!") || !strcmp(value, "}");
 }
 
 static int is_assignment(char *value)
@@ -46,11 +46,34 @@ enum parser_status parse_command(struct ast **res, struct lexer *lexer)
 
 enum parser_status parse_shell_command(struct ast **res, struct lexer *lexer)
 {
-    return parse_rule_if(res, lexer) == P_OK
-            || parse_rule_while(res, lexer) == P_OK
-            || parse_rule_until(res, lexer) == P_OK
-        ? P_OK
-        : P_KO;
+    struct token tok = lexer_peek(lexer);
+
+    if (tok.type != TOKEN_WORD || strcmp(tok.value, "{"))
+    {
+        return parse_rule_if(res, lexer) == P_OK
+                || parse_rule_while(res, lexer) == P_OK
+                || parse_rule_until(res, lexer) == P_OK
+            ? P_OK
+            : P_KO;
+    }
+
+    tok = lexer_pop_free(lexer);
+
+    if (parse_compound_list(res, lexer) != P_OK)
+    {
+        return P_KO;
+    }
+
+    tok = lexer_peek(lexer);
+
+    if (tok.type != TOKEN_WORD || strcmp(tok.value, "}"))
+    {
+        return P_KO;
+    }
+
+    tok = lexer_pop_free(lexer);
+
+    return P_OK;
 }
 
 /* Unintuitively parsing a not so simple command:
