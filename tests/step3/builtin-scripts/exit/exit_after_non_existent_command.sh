@@ -1,0 +1,2 @@
+ehco ziuefhnchu
+exit

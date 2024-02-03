@@ -25,10 +25,6 @@ int hash_map_insert(struct hash_map *hash_map, char *key, char *value,
 
 void hash_map_free(struct hash_map *hash_map);
 
-void hash_map_dump(struct hash_map *hash_map);
-
 char *hash_map_get(struct hash_map *hash_map, char *key);
-
-int hash_map_remove(struct hash_map *hash_map, char *key);
 
 #endif /* ! HASH_MAP_H */
