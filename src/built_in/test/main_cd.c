@@ -14,7 +14,7 @@
 
 int main(void)
 {
-    char s[] = "..";
+    char s[] = "../../../tests/step1/builtin-scripts";
     char *args[3];
     args[0] = "cd";
     args[1] = s;

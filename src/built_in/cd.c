@@ -188,9 +188,7 @@ static char **remove_dot_dot(char **component)
     {
         if (strcmp(component[i], "..") == 0)
         {
-            if (i
-                && is_directory(component[i - 1])
-                    == 0) // si c'est pas un directory
+            if (strcmp(component[i - 1], "/") == 0)
             {
                 free(component[i]);
                 for (size_t k = i; component[k]; k++)
